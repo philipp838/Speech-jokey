@@ -21,12 +21,9 @@ Speech synthesis is done using various speech synthesis engines. The application
 The project is based on Python `3.11`, but it also supports lower version down to `3.9`. To install Python, follow the instructions on the [Python website](https://www.python.org/downloads/).
 
 ## Install dependencies
-We use poetry for dependency management. To install poetry, run:
-```
-pip install poetry
-```
+We use poetry for dependency management. To install poetry, please check their [installation instructions]([url](https://python-poetry.org/docs/main/#installing-with-the-official-installer)).
 
-Make sure to configure poetry to install the virtual environment in the project root. This can be done by running:
+Then make sure to configure poetry to install the virtual environment in the project root. This can be done by running:
 ```
 poetry config virtualenvs.in-project true
 ```
