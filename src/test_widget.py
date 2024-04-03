@@ -1,7 +1,7 @@
 from kivymd.app import MDApp
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.boxlayout import MDBoxLayout
-from api.ExampleAPI.exampleapi import ExampleAPIWidget
+from api.exampleapi.exampleapi import ExampleAPIWidget
 from modules.util.widget_loader import load_widget
 import os
 import sys

@@ -12,7 +12,7 @@ class ApiFactory:
     @staticmethod
     def get_api(api_name: str):
         try:
-            api_module = importlib.import_module(f"api.{api_name}.{api_name.lower()}")
+            api_module = importlib.import_module(f"api.{api_name.lower()}.{api_name.lower()}")
             log.debug("%s: Imported API module: %s", __class__.__name__, api_module)
             api_class = getattr(api_module, api_name) # TODO Unused api_class
             settings_class = getattr(api_module, f"{api_name}Settings") # TODO Unused settings_class
