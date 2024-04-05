@@ -71,10 +71,12 @@ class ExampleAPI(BaseApi):
     
     # Implement abstract methods of BaseApi
     def play(self, input: str):
+        print("playing...")
         # Placeholder implementation
         pass
 
     def synthesize(self, input: str, file: str):
+        print("synthesizing...")
         # Placeholder implementation
         pass
     
