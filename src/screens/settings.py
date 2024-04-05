@@ -14,4 +14,4 @@ class Settings(MDScreen):
         self.title = title
         log.debug("%s: API: %s", self.__class__.__name__, api)
         if api is not None:
-            self.ids.settings_container.add_widget(api)
+            self.ids.settings_container.add_widget(api.settings.get_settings_widget())
