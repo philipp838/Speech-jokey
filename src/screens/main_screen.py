@@ -133,7 +133,7 @@ class MainScreen(MDScreen):
         api = App.get_running_app().api
         if api:
             try:
-                api.play(self.text_input.text)
+                api.play(self.ids.text_main.text)
             except NotImplementedError:
                 log.error("%s: Audio playback not implemented for this API.", self.__class__.__name__)
             except Exception as e:
@@ -144,7 +144,8 @@ class MainScreen(MDScreen):
         api = App.get_running_app().api
         if api:
             try:
-                api.synthesize(self.text_input.text, "output_file.wav")
+                # FIXME: Use constant or configurable output path
+                api.synthesize(self.ids.text_main.text, "tmp/output_file.wav")
             except NotImplementedError:
                 msg = "Text to speech synthesis not implemented for this API."
                 log.error("%s: %s", self.__class__.__name__, msg)
