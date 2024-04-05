@@ -18,7 +18,7 @@ class ApiFactory:
             settings_class = getattr(api_module, f"{api_name}Settings") # TODO Unused settings_class
             widget_class = getattr(api_module, f"{api_name}Widget")
             load_widget(os.path.join(os.path.dirname(api_module.__file__), f"{api_name.lower()}.kv"))
-            return widget_class()
+            return api_class(settings_class(widget_class()))
         except (ModuleNotFoundError, AttributeError) as e:
             log.error("%s: Error loading API {api_name}: {e}", __class__.__name__, api_name=api_name, e=e)
             log.debug("%s: %s", __class__.__name__, traceback.format_exc())
