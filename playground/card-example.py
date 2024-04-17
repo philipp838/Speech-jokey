@@ -36,7 +36,7 @@ MDScreen:
 '''
 
 
-class MyCard(MDCard):
+class MyCard(MDCard): # This is my code line that I changed
     '''Implements a material card.'''
 
     text = StringProperty()
