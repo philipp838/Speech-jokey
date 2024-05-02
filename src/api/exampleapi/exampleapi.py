@@ -86,10 +86,13 @@ class ExampleAPI(BaseApi):
         src_path = str(Path(os.path.dirname(__file__)).parents[2])
         tmp_path = os.path.join(src_path, 'tmp')
         # print(tmp_path)
-        audio_path = os.path.join(tmp_path, 'sample-3s.wav')        # name of your audio file
-        # print(audio_path)
-        audio = AudioSegment.from_wav(audio_path)
-        play(audio)
+        if len(os.listdir(tmp_path)) == 0:
+            print("Directory is empty. Press generate first!")
+        else:
+            audio_path = os.path.join(tmp_path, 'sample-3s.wav')        # name of your audio file
+            # print(audio_path)
+            audio = AudioSegment.from_wav(audio_path)
+            play(audio)
 
     def synthesize(self, input: str, file: str):
         print("synthesizing...")
