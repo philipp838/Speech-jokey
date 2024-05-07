@@ -203,7 +203,7 @@ class ElevenLabsAPI():
         return [voice.name for voice in voices()]
 
     # neue Funktion
-    def convert_text(text):
+    def convert_text(self, text: str):
         text_arr = list(text)
         output_text = ""
         for char in text_arr:
