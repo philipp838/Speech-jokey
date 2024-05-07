@@ -202,6 +202,25 @@ class ElevenLabsAPI():
         # Dit is een voorbeeld, vervang dit door de echte implementatie
         return [voice.name for voice in voices()]
 
+    # neue Funktion
+    def convert_text(text):
+        text_arr = list(text)
+        output_text = ""
+        for char in text_arr:
+            # print(char)
+            if char == ",":  # default pause
+                output_text = output_text + "<break time=\"0.0s\" />"
+
+            elif char == "." or char == "?" or char == "!":
+                output_text = output_text + "<break time=\"0.5s\" />"
+
+            elif char == ";":
+                output_text = output_text + "<break time=\"0.5s\" />"
+
+            output_text = output_text + char
+        return output_text
+
+
     def synthesize(self, input: str, out_filename: str = None):
         """
         Synthesize an input using the ElevenLabs TTS API.
@@ -216,7 +235,8 @@ class ElevenLabsAPI():
         shouldStream = True if not out_filename else False
         if self.settings is None:
             text = input, voice = self.voice, model = self.model, stream = shouldStream
-            self.generate(text, voice, model, stream)
+
+            audio = self.generate(text, voice, model, stream)
             print(text)
             if (shouldStream):
                 print("this is the shouldstream")
@@ -228,7 +248,11 @@ class ElevenLabsAPI():
                                self.settings.voice_text), None)
             self.model = self._models[0]
             set_api_key(self.settings.api_key_text)
-            audio = generate(text=input, voice=self.voice,
+
+            # TODO: hier neuer Teil
+            converted_input = self.convert_text(input)
+
+            audio = generate(text=converted_input, voice=self.voice,
                              model=self.model, stream=shouldStream)
             if (shouldStream):
                 play(audio)
