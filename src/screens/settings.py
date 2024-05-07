@@ -4,6 +4,8 @@ from kivy.logger import Logger as log
 # KivyMD
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.widget import MDWidget
+# from ..api.elevenlabsapi.elevenlabsapi import ElevenLabsAPIWidget
+
 # stdlib
 # Custom
 
@@ -14,4 +16,7 @@ class Settings(MDScreen):
         self.title = title
         log.debug("%s: API: %s", self.__class__.__name__, api)
         if api is not None:
-            self.ids.settings_container.add_widget(api.settings.get_settings_widget())
+            try:
+                self.ids.settings_container.add_widget(api)
+            except Exception as e:
+                log.error("Error adding widget to settings_container: %s", str(e))
