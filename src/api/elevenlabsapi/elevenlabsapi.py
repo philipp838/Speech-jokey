@@ -20,6 +20,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown
 from pydub import AudioSegment          # TODO: add pydub to dependencies
+from pydub.playback import play as pyplay
 
 
 ELEVENLABS_API_KEY = "8eb906f48ad066d589328ce0c579d265"
@@ -272,8 +273,12 @@ class ElevenLabsAPI():
         else:
             audio_path = os.path.join(tmp_path, 'output_file.wav')        # name of your audio file
             print(audio_path)
-            audio = AudioSegment.from_wav(audio_path)
-            play(audio)
+            try:
+                audio = AudioSegment.from_file(audio_path, "mp3")
+            except:
+                audio = AudioSegment.from_file(audio_path, format="mp4")
+
+            pyplay(audio)
     @staticmethod
     def get_config():
         return {
