@@ -61,9 +61,10 @@ class SpeechJokey(MDApp):
         log.setLevel(LOG_LEVELS["debug"])
         self.apis = load_apis()
         self.api = self.apis.get("ElevenLabsAPI", None)
+        example_api = self.apis.get("ExampleAPI", None)
         self.sm.add_widget(MainScreen(title="Speech Jokey", name="main"))
         self.sm.add_widget(
-            Settings(title="Settings", api=self.api, name="settings"))
+            Settings(title="Settings", apis=[self.api, example_api], name="settings"))
         self.sm.add_widget(About(title="About", name="about"))
         return self.sm
 
