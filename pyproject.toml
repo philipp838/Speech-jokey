@@ -22,6 +22,7 @@ elevenlabs = "^0.2.26"
 pyaudio = "^0.2.14"
 kivymd = {url = "https://github.com/kivymd/KivyMD/archive/master.zip"}
 pydub = "^0.25.1"
+python-dotenv = "^1.0.1"
 
 [build-system]
 requires = ["poetry-core"]

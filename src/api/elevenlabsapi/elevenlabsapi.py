@@ -19,11 +19,14 @@ import os
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown
-from pydub import AudioSegment          # TODO: add pydub to dependencies
+from pydub import AudioSegment
 from pydub.playback import play as pyplay
 
-
-ELEVENLABS_API_KEY = "8eb906f48ad066d589328ce0c579d265"
+from dotenv import load_dotenv
+load_dotenv()
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
+# TODO: for that to work you have to make a file called '.env'. In there write: ELEVENLABS_API_KEY = [your API key]
+# TODO: see how that can be generated automatically on project setup!!
 
 # If API key is not set, prompt the user to enter it
 if not get_api_key():
