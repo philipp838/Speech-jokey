@@ -62,4 +62,5 @@ class SpeechJokey(MDApp):
 if __name__ == '__main__':
     if hasattr(sys, '_MEIPASS'):
         resource_add_path(os.path.join(sys._MEIPASS))
+    os.makedirs(TMP_FOLDER, exist_ok=True) # This should fix it permanently
     SpeechJokey(kv_file="SpeechJokey.kv").run()
