@@ -10,8 +10,7 @@ import logging
 from kivy.app import App
 from kivy.properties import StringProperty, ListProperty, ObjectProperty
 from kivy.logger import Logger as log
-from kivy.uix.boxlayout import BoxLayout
-from kivymd.uix.expansionpanel import MDExpansionPanel
+from kivymd.uix.screen import MDScreen
 from pathlib import Path
 from typing import Iterator, List
 from ..base import BaseApiSettings
@@ -34,46 +33,30 @@ if not get_api_key():
     log.info("API key is set to default value.")
 
 
-class ElevenLabsAPIWidget(MDExpansionPanel):
+class ElevenLabsAPIWidget(MDScreen):
+    settings = ObjectProperty(None)
+    title = StringProperty()
     api_key_input = ObjectProperty(None)
     voice_selection = ObjectProperty(None)
     model_selection = ObjectProperty(None)
     voice_names = ListProperty()
     model_names = ListProperty()
-    settings = ObjectProperty(None)
 
-    def __init__(self, **kwargs):
+    def __init__(self, title: str = "ElevenLabs API Settings", **kwargs):
         super(ElevenLabsAPIWidget, self).__init__(**kwargs)
-        self.settings = ElevenLabsAPISettings(self)
-
-        # Initialize api_key_input as a TextInput
-        self.api_key_input = TextInput(
-            hint_text='Enter API Key', multiline=False)
-        self.add_widget(self.api_key_input)
-        
-        # Two-way bind api-key
-        self.api_key_input.bind(text=self.settings.setter('api_key_text'))
-        self.settings.bind(api_key_text=self.api_key_input.setter('text'))
-
-        # Initialize voice_selection as CustomSpinner
-        self.voice_selection = CustomSpinner(options=self.voice_names)
-        self.add_widget(self.voice_selection)
-
-        # Initialize model_selection as CustomSpinner
-        self.model_selection = CustomSpinner(options=self.model_names)
-        self.add_widget(self.model_selection)
-
-        # Set environment variable for token
-        self.api_key_input.bind(on_text_validate=self.update_api_key)
-        
-        # Two-way bind model
-        self.model_selection.bind(text=self.settings.setter('model_text'))
-        self.settings.bind(model_text=self.model_selection.setter('text'))
-        
-        self.settings.load_settings()
+        self.title = title
+        self.name = ElevenLabsAPI.__name__.lower() + "_settings"
 
     def update_api_key(self, instance, value):
         self.settings.api_key_text = value
+    
+    def transit(self, target: str, direction: str):
+        self.manager.transition.direction = direction
+        self.manager.current = target
+
+    def transit_to_self(self):
+        self.transit(self.name, 'right')
+
 
 class CustomSpinner(Button):
     def __init__(self, options, **kwargs):
@@ -90,11 +73,11 @@ class CustomSpinner(Button):
 
 
 class ElevenLabsAPISettings(BaseApiSettings):
-    api_name = 'ElevenLabsAPI'
+    api_name = "ElevenLabsAPI"
+    # NOTE ElevenLabs API SETTING properties (not to be mistaken with the properties of the widget, holding current selections)
     api_key_text = StringProperty('')
     voice_text = StringProperty('')
     model_text = StringProperty('')
-    widget = ObjectProperty(None)
 
     @classmethod
     def isSupported(cls):
@@ -106,8 +89,18 @@ class ElevenLabsAPISettings(BaseApiSettings):
 
     def __init__(self, widget: ElevenLabsAPIWidget, **kwargs):
         super(ElevenLabsAPISettings, self).__init__(**kwargs)
-        self.widget = widget
+        self.widget = widget # Save reference to the widget
+        widget.settings = self # Set the settings object in the widget
+        # Two-way bind api-key
+        widget.api_key_input.bind(text=self.setter('api_key_text'))
+        self.bind(api_key_text=self.widget.api_key_input.setter('text'))
 
+        # Binding to update environment variable with input API key
+        widget.api_key_input.bind(on_text_validate=self.update_api_key)
+        
+        # Two-way bind model
+        self.widget.model_selection.bind(text=self.setter('model_text'))
+        self.bind(model_text=self.widget.model_selection.setter('text'))
         self.load_settings()
 
     def load_settings(self):
@@ -118,20 +111,18 @@ class ElevenLabsAPISettings(BaseApiSettings):
             self.api_name, "voice", default="Serena")
         self.model_text = app_instance.global_settings.get_setting(
             self.api_name, "model", default="multilingual v2")
-        self.api = ElevenLabsAPI(self)
-        app_instance.api = self.api
 
         # Update de widget UI-elementen nadat de instellingen zijn geladen
-        if self.widget and self.widget.api_key_input:
-            self.widget.api_key_input.text = self.api_key_text
-        else:
-            log.error("api_key_input is not correctly initialized.")
+        # if self.widget and self.widget.api_key_input:
+        #     self.widget.api_key_input.text = self.api_key_text
+        # else:
+        #     log.error("api_key_input is not correctly initialized.")
 
-        if self.widget and self.widget.voice_selection:
-            self.widget.voice_selection.text = self.voice_text
+        # if self.widget and self.widget.voice_selection:
+        #     self.widget.voice_selection.text = self.voice_text
 
-        if self.widget and self.widget.model_selection:
-            self.widget.model_selection.text = self.model_text
+        # if self.widget and self.widget.model_selection:
+        #     self.widget.model_selection.text = self.model_text
 
     def save_settings(self):
         app_instance = App.get_running_app()
