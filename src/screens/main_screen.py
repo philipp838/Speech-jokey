@@ -191,7 +191,7 @@ class MainScreen(MDScreen):
         if api:
             try:
                 # FIXME: Use constant or configurable output path
-                api.synthesize(self.ids.text_main.text, "tmp/output_file.wav")
+                api.synthesize(self.ids.text_main.text, os.path.join('tmp', 'output_file.wav'))
             except NotImplementedError:
                 msg = "Text to speech synthesis not implemented for this API."
                 log.error("%s: %s", self.__class__.__name__, msg)
