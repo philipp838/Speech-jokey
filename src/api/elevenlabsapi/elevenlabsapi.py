@@ -24,7 +24,10 @@ from pydub.playback import play as pyplay
 from dotenv import load_dotenv
 load_dotenv()
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
-# TODO: for that to work you have to make a file called '.env'. In there write: ELEVENLABS_API_KEY = [your API key]
+if not ELEVENLABS_API_KEY:
+   print("No API-Key set: Please make a file called '.env'. In there write: ELEVENLABS_API_KEY = [your API key]")
+   exit(1)
+# TODO: for that to work you have to make a file called '.env_'. In there write: ELEVENLABS_API_KEY = [your API key]
 # TODO: see how that can be generated automatically on project setup!!
 
 # If API key is not set, prompt the user to enter it
