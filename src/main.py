@@ -4,12 +4,9 @@ from kivy.logger import Logger as log, LOG_LEVELS
 from kivy.config import Config
 from kivy.uix.screenmanager import ScreenManager
 from kivy.resources import resource_add_path
-from kivy.uix.behaviors import ButtonBehavior
 from kivy.animation import Animation
 from kivy.metrics import dp
 # KivyMD
-from kivymd.uix.expansionpanel import MDExpansionPanel
-from kivymd.uix.behaviors import RotateBehavior
 from kivymd.uix.list import MDListItemTrailingIcon
 # stdlib
 import os
@@ -26,13 +23,6 @@ from api.api_factory import load_apis
 # FIXME This folder shall always be created in the location of the executable, but currently will always be created in the current working directory
 # NOTE Need to differentiate launch environment (Release vs. Debug) - where one gets executed via python, the other via deployed executable
 TMP_FOLDER = 'tmp'
-
-
-class TrailingPressedIconButton(
-    ButtonBehavior, RotateBehavior, MDListItemTrailingIcon
-):
-    # NOTE necessary class to allow for the chevron to rotate when the expansion panel is opened or closed
-    ...
 
 
 class SpeechJokey(MDApp):
@@ -63,36 +53,11 @@ class SpeechJokey(MDApp):
         self.api = self.apis.get("ElevenLabsAPI", None)
         example_api = self.apis.get("ExampleAPI", None)
         self.sm.add_widget(MainScreen(title="Speech Jokey", name="main"))
-        self.sm.add_widget(
-            Settings(title="Settings", apis=[self.api, example_api], name="settings"))
+        self.settings = Settings(title="Settings", name="settings")
+        self.sm.add_widget(self.settings)
+        self.settings.setup_apis([self.api, example_api])
         self.sm.add_widget(About(title="About", name="about"))
         return self.sm
-
-    # NOTE Global method for all expansion panels to call
-    def tap_expansion_chevron(
-        self, panel: MDExpansionPanel, chevron: TrailingPressedIconButton
-    ):
-        Animation(
-            padding=[0, dp(12), 0, dp(12)]
-            if not panel.is_open
-            else [0, 0, 0, 0],
-            d=0.2,
-        ).start(panel)
-        panel.open() if not panel.is_open else panel.close()
-        panel.set_chevron_down(
-            chevron
-        ) if not panel.is_open else panel.set_chevron_up(chevron)
-        # if panel.panel_is_open and len(self.panel.content.children) > 1:
-        #     self.panel.height += item.height
-        # elif self.panel_is_open and len(self.panel.content.children) == 1:
-        #     self.panel.height -= (self.panel.height - item.height) - self.panel.panel_cls.height
-        for child in panel.ids.content.children:
-            panel.parent.height += child.height + 200
-            # panel.ids.content.height += child.height if not panel.is_open else -child.height
-            # panel.parent.height += child.height if not panel.is_open else -child.height
-            # panel.parent.parent.height += child.height if not panel.is_open else -child.height
-        os.makedirs(TMP_FOLDER, exist_ok=True)
-
 
 if __name__ == '__main__':
     if hasattr(sys, '_MEIPASS'):
