@@ -1,6 +1,6 @@
 # Kivy
 from kivy.app import App
-from kivy.properties import StringProperty
+from kivy.properties import StringProperty, ObjectProperty
 from kivy.logger import Logger as log
 # KivyMD
 from kivymd.uix.screen import MDScreen
@@ -64,6 +64,9 @@ class ExampleAPIWidget(MDScreen):
     def __init__(self, title: str = "Example API Settings", name: str = "example_api_settings", **kwargs):
         super(ExampleAPIWidget, self).__init__(**kwargs)
         self.title = title
+        # NOTE The name of the settings screen is set here AND it should be the same copy-paste line for ALL API settings screens
+        # You only need to change ExampleAPI to the name of the main logic class of the API
+        # The main settings screen (settings.py) EXPECTS this naming scheme to be followed
         self.name = ExampleAPI.__name__.lower() + "_settings"
         # NOTE If you want to bind SETTING properties to widget properties, you would do it here
         # ...(e.g. self.<property>.bind(self.<widget-property> ... )) - Please only do this if you go with the first design pattern
