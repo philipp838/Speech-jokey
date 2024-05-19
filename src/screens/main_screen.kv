@@ -28,7 +28,7 @@
                     id: btn_select_voice
                     icon: "account-voice"
                     on_release: root.on_select_voice()
-
+                    
             MDTopAppBarTitle:
                 text: root.title
                 pos_hint: {"center_x": .5, "center_y": .5}
@@ -63,3 +63,37 @@
                 adaptive_width: True
                 id: label_status
                 text: "developmental state"
+                
+<Popups>:
+    Label:
+        text: "You selected the voice: " + root.voice_name
+        halign: 'center'
+        font_size: '20sp'
+        color: 1, 1, 1, 1
+        size_hint: 0.6, 0.2
+        pos_hint: {"x":0.2, "top":1}
+
+<CustomPopup>:
+    title: ""
+    separator_height: 0
+    size_hint: 0.8, 0.4
+    background_color: (0,0,0,0)
+
+    BoxLayout:
+        orientation: "vertical"
+        padding: 0, 10, 10, 10
+        spacing: 10 
+        border: 50
+        border_color: (1,1,1,1)
+        canvas.before:
+            Color:
+                rgba:(255/255,255/255,255/255,1)
+
+            RoundedRectangle:
+                pos: self.pos
+                size: self.size
+                radius: [40]
+        Label:
+            text: root.content_text
+            color: 0,0,0,1
+            font_size: 25

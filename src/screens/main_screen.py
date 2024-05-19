@@ -1,4 +1,5 @@
 # Kivy
+from kivy.uix.floatlayout import FloatLayout
 import time
 
 from kivy.app import App
@@ -9,6 +10,7 @@ from kivymd.uix.screen import MDScreen
 from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.dialog import MDDialog
+from kivy.uix.popup import Popup
 # stdlib
 import os
 import sys
@@ -148,42 +150,34 @@ class MainScreen(MDScreen):
         if api:
             voice_names = api.get_available_voices()
             if voice_names:
-                # Maak een lijst van menu-items voor elke stem
+                # make list of menu-items for every voice
                 menu_items = [
                     {
                         "text": voice_name,
                         "on_release": lambda x=voice_name: self.select_voice(x),
                     } for voice_name in voice_names
                 ]
-                # Maak een dropdown-menu met de stemopties
-                dropdown_menu = MDDropdownMenu(
-                    # Dit moet overeenkomen met de ID van de knop waarmee de stemmen worden geselecteerd
+                # make dropdown-menu with voice options
+                self.dropdown_menu = MDDropdownMenu(
+                    # this has to correspond with ID of button that selects the voices
                     caller=self.ids.btn_select_voice,
                     items=menu_items,
                     width_mult=4,
                 )
-                dropdown_menu.open()
+                self.dropdown_menu.open()
             else:
                 log.error("%s: No voices available from API.",
                           self.__class__.__name__)
         else:
             log.error("%s: API not available.", self.__class__.__name__)
 
-
     def select_voice(self, voice_name):
-        # Verwerk de geselecteerde stemnaam
+        # process selected voice names
         log.info("%s: Selected voice: %s", self.__class__.__name__, voice_name)
-        # Je kunt hier verdere acties ondernemen, zoals het instellen van de geselecteerde stem in de API
-        # TODO: Popup: you have selected this voice
-        if not self.voice_dialog:
-            self.voice_dialog = MDDialog(
-                # TODO: should work like below, but don't know why it doesn't...
-                # text="Selected voice: " + voice_name
-            )
-        self.voice_dialog.open()
-        time.sleep(3)       # does also not work as expexted... (window is opened after 3s and then closed immediately after)
-        self.voice_dialog.dismiss()
-
+        popup_window = CustomPopup(content_text=f"You selected the voice: \n{voice_name}",
+                                   size_hint=(None, None), size=(400, 400))
+        popup_window.open()
+        self.dropdown_menu.dismiss()
 
     def on_play(self):
         # TODO Implement audio playback (this is mostly a placeholder without a backend implementation yet)
@@ -214,3 +208,18 @@ class MainScreen(MDScreen):
                 msg = "Error during synthesis"
                 log.error("%s: %s: %s", self.__class__.__name__, msg, e)
                 self.ids.label_status.text = msg
+
+
+class CustomPopup(Popup):
+    content_text = StringProperty("")
+
+    def __init__(self, **kwargs):
+        super(CustomPopup, self).__init__(**kwargs)
+
+
+class Popups(FloatLayout):
+    voice_name = StringProperty("")
+
+    def __init__(self, voice_name="", **kwargs):
+        super(Popups, self).__init__(**kwargs)
+        self.voice_name = voice_name
