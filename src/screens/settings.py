@@ -27,9 +27,14 @@ class Settings(MDScreen):
             if api is not None:
                 try:
                     self.manager.add_widget(api.settings.widget)
-                    button = MDButton()
-                    button.add_widget(MDButtonIcon(icon="chevron-right", pos_hint={"center_x": 0.9}))
-                    button.add_widget(MDButtonText(text=api.settings.widget.title))
+                    button = MDButton(
+                        MDButtonIcon(icon="chevron-right", pos_hint={"x": 0.01, "center_y": 0.5}),
+                        MDButtonText(text=api.settings.widget.title),  # <--- text is VALID here
+                        style="text",
+                        pos_hint={"x": .01}
+                    )
+                    # button.add_widget(MDButtonIcon(icon="chevron-right", pos_hint={"center_x": 0.5, "center_y": 0.5}))   # Dreieckspfeil auf Button
+                    # button.add_widget(MDButtonText(text=api.settings.widget.title))                     # Text auf Button
                     button.bind(on_release=lambda x, api=api: self.on_settings_transition(api.__class__.__name__.lower() + "_settings"))
                     self.ids.settings_container.add_widget(button)
                     self.buttons.append(button)
