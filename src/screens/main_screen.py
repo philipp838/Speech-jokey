@@ -214,14 +214,8 @@ class MainScreen(MDScreen):
         old_cursor_index = self.old_cursor_index
         cnt_button = self.cnt_button
         old_cnt_button = self.old_cnt_button
-        print(new_cursor_index,old_cursor_index,cnt_button,old_cnt_button)
 
-        if abs(cnt_button - old_cnt_button) >= 1 and abs(new_cursor_index - old_cursor_index) <= 1:
-            print('Using buttons to move cursor')
-        elif abs(cnt_button - old_cnt_button) == 0 and abs(new_cursor_index - old_cursor_index) == 1:
-            print('Writing')
-        elif abs(cnt_button - old_cnt_button) == 0 and abs(new_cursor_index - old_cursor_index) > 1:
-            print('moved cursor randomly')
+        if abs(cnt_button - old_cnt_button) == 0 and abs(new_cursor_index - old_cursor_index) > 1:
             # set cursor to the end of the word
             cursor_in_row_index = self.ids.text_main._cursor[0]
             row = self.ids.text_main._cursor[1]
