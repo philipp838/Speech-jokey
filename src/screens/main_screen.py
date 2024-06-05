@@ -12,6 +12,7 @@ import sys
 # Custom
 from modules.dialog.exitdialog import ExitDialog
 
+
 class MainScreen(MDScreen):
     title = StringProperty()
     text_input = ObjectProperty(None)
@@ -19,7 +20,7 @@ class MainScreen(MDScreen):
     menu_options = {
         "Settings": "settings",
         "About": "about",
-        "Exit": None # NOTE Exit just closes the app and doesn't have an associated screen
+        "Exit": None  # NOTE Exit just closes the app and doesn't have an associated screen
     }
     supported_text_files = ["txt", "md", "rst"]
 
@@ -33,14 +34,15 @@ class MainScreen(MDScreen):
         self.title = title
         self.last_path = None
         self.opened_file = None
-        self.manager_open = False # FIXME This is used to keep track of the file manager state (open or closed) but is not currently used
+        # FIXME This is used to keep track of the file manager state (open or closed) but is not currently used
+        self.manager_open = False
         self.file_manager = MDFileManager(
             exit_manager=self.exit_manager,
             select_path=self.select_path,
             icon_selection_button="folder-marker"
         )
         # TODO Adjust the scrollbar within MDFileManager to be more visible (not just a thin line)
- 
+
     def on_menu_open(self):
         menu_items = [
             {
@@ -52,11 +54,12 @@ class MainScreen(MDScreen):
             caller=self.ids.btn_menu, items=menu_items
         )
         self.drop_menu.open()
-    
+
     def menu_callback(self, text_item):
         self.manager.transition.direction = 'left'
         if text_item not in self.menu_options.keys():
-            log.error("%s: Invalid menu option: %s", self.__class__.__name__, text_item)
+            log.error("%s: Invalid menu option: %s",
+                      self.__class__.__name__, text_item)
             return
         if text_item == "Exit":
             ExitDialog().open()
@@ -68,19 +71,22 @@ class MainScreen(MDScreen):
         if os.path.isfile(path):
             self.opened_file = os.path.basename(path)
             self.last_path = os.path.dirname(path)
-            log.debug("%s: File: %s - Path: %s", self.__class__.__name__, self.opened_file, self.last_path)
+            log.debug("%s: File: %s - Path: %s", self.__class__.__name__,
+                      self.opened_file, self.last_path)
         elif os.path.isdir(path):
             self.last_path = path
         else:
-            log.error("%s: Invalid path selected: %s", self.__class__.__name__, path)
+            log.error("%s: Invalid path selected: %s",
+                      self.__class__.__name__, path)
         self.exit_manager()
-    
+
     def exit_manager(self, *args):
         if all([self.last_path, self.opened_file]):
             file = os.path.join(self.last_path, self.opened_file)
             self.load_textfile(file)
         else:
-            log.error("%s: No file selected. Last path: %s", self.__class__.__name__, self.last_path)
+            log.error("%s: No file selected. Last path: %s",
+                      self.__class__.__name__, self.last_path)
         self.manager_open = False
         self.file_manager.close()
 
@@ -104,12 +110,15 @@ class MainScreen(MDScreen):
             log.error("%s: No file selected to load.", self.__class__.__name__)
             return
         if not os.path.isfile(file):
-            log.error("%s: Selection is not a file: %s", self.__class__.__name__, file)
+            log.error("%s: Selection is not a file: %s",
+                      self.__class__.__name__, file)
             return
         file_base, file_ext = os.path.splitext(file)
-        log.debug("%s: File: %s - Extension: %s", self.__class__.__name__, file_base, file_ext)
-        if file_ext[1:] not in self.supported_text_files: # NOTE [1:] Skip the leading period
-            log.error("%s: Unsupported file type: %s. Supported types: %s", self.__class__.__name__, file_ext, self.supported_text_files)
+        log.debug("%s: File: %s - Extension: %s",
+                  self.__class__.__name__, file_base, file_ext)
+        if file_ext[1:] not in self.supported_text_files:  # NOTE [1:] Skip the leading period
+            log.error("%s: Unsupported file type: %s. Supported types: %s",
+                      self.__class__.__name__, file_ext, self.supported_text_files)
             self.opened_file = None
             self.ids.text_main.text = ""
             return
@@ -128,6 +137,40 @@ class MainScreen(MDScreen):
             file.write(self.ids.text_main.text)
             log.info("%s: Saved file: %s", self.__class__.__name__, file)
 
+    def on_select_voice(self):
+        api = App.get_running_app().api
+        # print(f"This is the api used: {api}")
+        print("clicked on voice selection")
+        if api:
+            voice_names = api.get_available_voices()
+            if voice_names:
+                # Maak een lijst van menu-items voor elke stem
+                menu_items = [
+                    {
+                        "text": voice_name,
+                        "on_release": lambda x=voice_name: self.select_voice(x),
+                    } for voice_name in voice_names
+                ]
+                # Maak een dropdown-menu met de stemopties
+                dropdown_menu = MDDropdownMenu(
+                    # Dit moet overeenkomen met de ID van de knop waarmee de stemmen worden geselecteerd
+                    caller=self.ids.btn_select_voice,
+                    items=menu_items,
+                    width_mult=4,
+                )
+                dropdown_menu.open()
+            else:
+                log.error("%s: No voices available from API.",
+                          self.__class__.__name__)
+        else:
+            log.error("%s: API not available.", self.__class__.__name__)
+
+
+    def select_voice(self, voice_name):
+        # Verwerk de geselecteerde stemnaam
+        log.info("%s: Selected voice: %s", self.__class__.__name__, voice_name)
+        # Je kunt hier verdere acties ondernemen, zoals het instellen van de geselecteerde stem in de API
+
     def on_play(self):
         # TODO Implement audio playback (this is mostly a placeholder without a backend implementation yet)
         api = App.get_running_app().api
@@ -135,17 +178,20 @@ class MainScreen(MDScreen):
             try:
                 api.play(self.ids.text_main.text)
             except NotImplementedError:
-                log.error("%s: Audio playback not implemented for this API.", self.__class__.__name__)
+                log.error(
+                    "%s: Audio playback not implemented for this API.", self.__class__.__name__)
             except Exception as e:
-                log.error("%s: Error during playback: %s", self.__class__.__name__, e)
+                log.error("%s: Error during playback: %s",
+                          self.__class__.__name__, e)
 
     def on_synthesize(self):
         # TODO Implement text to speech synthesis (this is mostly a placeholder without a backend implementation yet)
         api = App.get_running_app().api
+        print(api)
         if api:
             try:
                 # FIXME: Use constant or configurable output path
-                api.synthesize(self.ids.text_main.text, "tmp/output_file.wav")
+                api.synthesize(self.ids.text_main.text, os.path.join('tmp', 'output_file.wav'))
             except NotImplementedError:
                 msg = "Text to speech synthesis not implemented for this API."
                 log.error("%s: %s", self.__class__.__name__, msg)
