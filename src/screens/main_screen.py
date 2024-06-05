@@ -1,4 +1,6 @@
 # Kivy
+import time
+
 from kivy.app import App
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.logger import Logger as log
@@ -6,6 +8,7 @@ from kivy.logger import Logger as log
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.filemanager import MDFileManager
+from kivymd.uix.dialog import MDDialog
 # stdlib
 import os
 import sys
@@ -16,6 +19,7 @@ from modules.dialog.exitdialog import ExitDialog
 class MainScreen(MDScreen):
     title = StringProperty()
     text_input = ObjectProperty(None)
+    voice_dialog = None
     # FIXME The values of this dictionary needs to be kept in sync with the screen names in main.py (Unfortunately)
     menu_options = {
         "Settings": "settings",
@@ -170,6 +174,16 @@ class MainScreen(MDScreen):
         # Verwerk de geselecteerde stemnaam
         log.info("%s: Selected voice: %s", self.__class__.__name__, voice_name)
         # Je kunt hier verdere acties ondernemen, zoals het instellen van de geselecteerde stem in de API
+        # TODO: Popup: you have selected this voice
+        if not self.voice_dialog:
+            self.voice_dialog = MDDialog(
+                # TODO: should work like below, but don't know why it doesn't...
+                # text="Selected voice: " + voice_name
+            )
+        self.voice_dialog.open()
+        time.sleep(3)       # does also not work as expexted... (window is opened after 3s and then closed immediately after)
+        self.voice_dialog.dismiss()
+
 
     def on_play(self):
         # TODO Implement audio playback (this is mostly a placeholder without a backend implementation yet)
