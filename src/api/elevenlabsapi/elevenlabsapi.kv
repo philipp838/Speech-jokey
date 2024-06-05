@@ -36,6 +36,7 @@
                         text: 'ElevenLabs API Key:'
                     MDTextField:
                         id: api_key_input
+                        on_text_validate: root.update_api_key(self.text)
                         MDTextFieldHintText:
                             text: 'Enter API Key'
                         MDTextFieldHelperText:
