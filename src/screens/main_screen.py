@@ -3,6 +3,7 @@ from kivy.uix.floatlayout import FloatLayout
 import time
 
 from kivy.app import App
+from kivy.clock import Clock
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.logger import Logger as log
 # KivyMD
@@ -30,6 +31,7 @@ class MainScreen(MDScreen):
     }
     supported_text_files = ["txt", "md", "rst"]
 
+
     def __init__(self, title: str, **kwargs):
         super(MainScreen, self).__init__(**kwargs)
         # self.file_load_popup = loaddialog.LoadDialog(callback=self.load_textfile, title="Load file", size_hint=(0.9, 0.9))
@@ -48,6 +50,12 @@ class MainScreen(MDScreen):
             icon_selection_button="folder-marker"
         )
         # TODO Adjust the scrollbar within MDFileManager to be more visible (not just a thin line)
+
+        # new: for cursor movement and selection of words
+        self.cnt_button = 0
+        self.old_cnt_button = 0
+        self.old_cursor_index = self.ids.text_main.cursor_index()
+        Clock.schedule_once(self.set_focus, 0.1)
 
     def on_menu_open(self):
         menu_items = [
@@ -209,7 +217,52 @@ class MainScreen(MDScreen):
                 log.error("%s: %s: %s", self.__class__.__name__, msg, e)
                 self.ids.label_status.text = msg
 
+    def on_cursor_control(self):
+        new_cursor_index = self.ids.text_main.cursor_index()
+        old_cursor_index = self.old_cursor_index
+        cnt_button = self.cnt_button
+        old_cnt_button = self.old_cnt_button
 
+        if abs(cnt_button - old_cnt_button) == 0 and abs(new_cursor_index - old_cursor_index) > 1:
+            # set cursor to the end of the word
+            cursor_in_row_index = self.ids.text_main._cursor[0]
+            row = self.ids.text_main._cursor[1]
+            text_row = self.ids.text_main._lines[row]
+
+            spaces = []
+            for index in range(cursor_in_row_index, len(text_row)):
+                char = text_row[index]
+                if char == " ":
+                    spaces.append(index)
+            if spaces:
+                end_word_index = spaces[0]
+                self.ids.text_main.cursor = (end_word_index, row)
+            else:
+                self.ids.text_main.do_cursor_movement('cursor_end')
+
+        self.new_cursor_index = self.ids.text_main.cursor_index()
+        self.save_old_cursor_index(new_cursor_index)
+        self.save_old_cnt_button(cnt_button)
+
+    def save_old_cursor_index(self, cursor_index):
+        self.old_cursor_index = cursor_index
+
+    def save_old_cnt_button(self, cnt_button):
+        self.old_cnt_button = cnt_button
+
+    def on_cursor_left(self):
+        self.ids.text_main.do_cursor_movement('cursor_left')
+        self.cnt_button = self.cnt_button + 1
+        Clock.schedule_once(self.set_focus, 0.1)
+
+    def on_cursor_right(self):
+        self.ids.text_main.do_cursor_movement('cursor_right')
+        self.cnt_button = self.cnt_button + 1
+        Clock.schedule_once(self.set_focus, 0.1)
+
+    def set_focus(self, dt):
+        self.ids.text_main.focus = True
+        
 class CustomPopup(Popup):
     content_text = StringProperty("")
 

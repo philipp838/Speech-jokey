@@ -28,7 +28,6 @@
                     id: btn_select_voice
                     icon: "account-voice"
                     on_release: root.on_select_voice()
-                    
             MDTopAppBarTitle:
                 text: root.title
                 pos_hint: {"center_x": .5, "center_y": .5}
@@ -44,6 +43,14 @@
                     id: btn_synthesize
                     icon: "file-music"
                     on_press: root.on_synthesize()
+                MDFabButton:
+                    id: btn_cursor_left
+                    icon: "arrow-left-bold-box-outline"
+                    on_release: root.on_cursor_left()
+                MDFabButton:
+                    id: btn_cursor_right
+                    icon: "arrow-right-bold-box-outline"
+                    on_release: root.on_cursor_right()
 
         MDScrollView:
             adaptive_height: True
@@ -53,6 +60,8 @@
                 multiline: True
                 size_hint_y: None
                 adaptive_height: True
+                #new:
+                on_cursor: root.on_cursor_control()
 
         MDBoxLayout:
             adaptive_size: True
