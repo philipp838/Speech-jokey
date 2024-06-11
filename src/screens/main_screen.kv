@@ -11,22 +11,26 @@
             pos_hint: {"center_x": .5, "top": 1}
             MDTopAppBarLeadingButtonContainer:
                 spacing: "4dp"
-                padding: "4dp"
+                padding: 40,0,0,5
                 MDActionTopAppBarButton:
                     id: btn_menu
                     icon: "menu"
+                    height: "56dp"
                     on_release: root.on_menu_open()
                 MDFabButton:
                     id: btn_load
                     icon: "file-upload"
+                    style: "standard"   # also allows large
                     on_release: root.on_load_file()
                 MDFabButton:
                     id: btn_save
                     icon: "content-save"
+                    style: "standard"
                     on_release: root.on_save_file()
                 MDFabButton:
                     id: btn_select_voice
                     icon: "account-voice"
+                    style: "standard"
                     on_release: root.on_select_voice()
             MDTopAppBarTitle:
                 text: root.title
@@ -34,22 +38,26 @@
 
             MDTopAppBarTrailingButtonContainer:
                 spacing: "4dp"
-                padding: "4dp"
+                padding: 0,0,40,5
                 MDFabButton:
                     id: btn_play
                     icon: "play-circle"
+                    style: "standard"
                     on_press: root.on_play()
                 MDFabButton:
                     id: btn_synthesize
                     icon: "file-music"
+                    style: "standard"
                     on_press: root.on_synthesize()
                 MDFabButton:
                     id: btn_cursor_left
                     icon: "arrow-left-bold-box-outline"
+                    style: "standard"
                     on_release: root.on_cursor_left()
                 MDFabButton:
                     id: btn_cursor_right
                     icon: "arrow-right-bold-box-outline"
+                    style: "standard"
                     on_release: root.on_cursor_right()
 
         MDScrollView:
