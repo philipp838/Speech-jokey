@@ -51,14 +51,24 @@
                         MDTextFieldMaxLengthText:
                             max_text_length: 32
                 MDListItem:
-                    MDLabel:
-                        text: 'Voice Name:'
+                    height: "120dp"
+                    MDListItemLeadingIcon:
+                        icon: "account-voice"
+                        pos_hint: {"center_x": .5, "center_y": .5}
+                    MDListItemHeadlineText:
+                        text: 'Voice:'
+                    MDListItemSupportingText:
+                        text: "Select the voice that you want to use."
                     Spinner:
                         id: voice_name_spinner
                         text: root.voice_names[0] if root.voice_names else 'No voices available'
                         values: root.voice_names
                 MDListItem:
-                    MDLabel:
+                    height: "120dp"
+                    MDListItemLeadingIcon:
+                        icon: "account-cog"
+                        pos_hint: {"center_x": .5, "center_y": .5}
+                    MDListItemHeadlineText:
                         text: 'Model:'
                     Spinner:
                         id: model_spinner
