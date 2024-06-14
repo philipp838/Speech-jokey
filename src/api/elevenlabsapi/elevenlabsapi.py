@@ -140,17 +140,20 @@ class ElevenLabsAPI():
     def __init__(self, settings: ElevenLabsAPISettings = None):
         logging.debug("Initializing ElevenLabsAPI instance...")
         self.settings = settings
+        self.init_api()
+
+    def init_api(self):
         self.settings.load_settings()
         # Try to init the API.
         # This will only work, if the settings are configured properly.
         try:
             set_api_key(self.settings.api_key_text)
-            settings.widget.model_names=self.get_models()
-            settings.widget.voice_names=self.get_voices()
+            self.settings.widget.model_names=self.get_models()
+            self.settings.widget.voice_names=self.get_voices()
         except:
             log.error("API Key invalid: %s",self.settings.api_key_text)
         finally:
-            settings.widget.model_names=self.get_models()
+            self.settings.widget.model_names=self.get_models()
 
     # FIXME: This is a duplicate to get_voices()
     def get_available_voices(self):
@@ -161,11 +164,15 @@ class ElevenLabsAPI():
         # Dit kan een HTTP-verzoek naar de API zijn of het ophalen van stemnamen uit een lokaal bestand of database
         # Retourneer een lijst met stemnamen
         # Dit is een voorbeeld, vervang dit door de echte implementatie
-        return [voice.name for voice in voices()]
+        try:
+            self.init_api()
+            return [voice.name for voice in voices()]
+        except: return []
 
     def set_voice(self, voice_name):
         self.settings.voice_text=voice_name
         self.settings.save_settings()
+        self.init_api()
 
     # neue Funktion
     def convert_text(self, text: str):
@@ -194,7 +201,7 @@ class ElevenLabsAPI():
             out_filename (str): output filename (Optional, if not provided, the audio will be played instead of saved)
         """
         print(input)
-        self.settings.load_settings()
+        self.init_api()
 
         if (not input):
             raise ValueError("Input must not be empty")
@@ -257,7 +264,6 @@ class ElevenLabsAPI():
     @staticmethod
     def get_voices() -> List[str]:
         return [v.name for v in voices()]
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
