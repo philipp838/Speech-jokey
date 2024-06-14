@@ -182,6 +182,9 @@ class MainScreen(MDScreen):
     def select_voice(self, voice_name):
         # process selected voice names
         log.info("%s: Selected voice: %s", self.__class__.__name__, voice_name)
+        api = App.get_running_app().api
+        api.set_voice(voice_name)
+
         popup_window = CustomPopup(content_text=f"You selected the voice: \n{voice_name}",
                                    size_hint=(None, None), size=(400, 400))
         popup_window.open()

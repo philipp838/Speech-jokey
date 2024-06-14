@@ -163,6 +163,10 @@ class ElevenLabsAPI():
         # Dit is een voorbeeld, vervang dit door de echte implementatie
         return [voice.name for voice in voices()]
 
+    def set_voice(self, voice_name):
+        self.settings.voice_text=voice_name
+        self.settings.save_settings()
+
     # neue Funktion
     def convert_text(self, text: str):
         text_arr = list(text)
