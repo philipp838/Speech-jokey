@@ -23,6 +23,7 @@ class MainScreen(MDScreen):
     title = StringProperty()
     text_input = ObjectProperty(None)
     voice_dialog = None
+    selected_voice = StringProperty()
     # FIXME The values of this dictionary needs to be kept in sync with the screen names in main.py (Unfortunately)
     menu_options = {
         "Settings": "settings",
@@ -56,6 +57,14 @@ class MainScreen(MDScreen):
         self.old_cnt_button = 0
         self.old_cursor_index = self.ids.text_main.cursor_index()
         Clock.schedule_once(self.set_focus, 0.1)
+        self.load_current_voice()
+        App.get_running_app().api.settings.bind(voice_text=self.update_current_voice)
+    def load_current_voice(self): 
+        app_instance = App.get_running_app()
+        # print(f"API in main_screen: ", app_instance.api)
+        self.selected_voice = app_instance.global_settings.get_setting("ElevenLabsAPI", "voice")
+    def update_current_voice(self, instance, value):
+        self.selected_voice = value
 
     def on_menu_open(self):
         menu_items = [

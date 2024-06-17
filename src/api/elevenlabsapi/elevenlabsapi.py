@@ -49,6 +49,9 @@ class ElevenLabsAPIWidget(MDScreen):
         log.info("on_leave of settings")
         self.settings.save_settings()
 
+    def get_current_voice(self):
+        return self.voice_selection.text
+    
 class CustomSpinner(Button):
     def __init__(self, options, **kwargs):
         super().__init__(**kwargs)
