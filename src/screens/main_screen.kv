@@ -9,6 +9,17 @@
         MDTopAppBar:
             type: "small"
             pos_hint: {"center_x": .5, "top": 1}
+            MDBoxLayout:
+                orientation: 'vertical'
+                MDLabel:
+                    id: selected_voice
+                    icon: "account-voice"
+                    text: "current voice: " + root.selected_voice
+                    halign: 'center' 
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    pos_hint: {"center_x": -.5,"center_y": -.5} 
             MDTopAppBarLeadingButtonContainer:
                 spacing: "4dp"
                 padding: 40,0,0,5

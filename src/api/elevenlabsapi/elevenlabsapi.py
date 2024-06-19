@@ -7,7 +7,6 @@ except ImportError:
 if __name__ == '__main__':
     import argparse
 import logging
-import dotenv
 from kivy.app import App
 from kivy.properties import StringProperty, ListProperty, ObjectProperty
 from kivy.logger import Logger as log
@@ -16,33 +15,15 @@ from pathlib import Path
 from typing import Iterator, List
 from ..base import BaseApiSettings
 import os
-from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown
 from pydub import AudioSegment
 from pydub.playback import play as pyplay
-import tkinter.filedialog as fd
-
-
-from dotenv import load_dotenv
-load_dotenv(override=True)
-ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
-if not ELEVENLABS_API_KEY:
-    print(
-        "No API-Key set: Please make a file called '.env'. In there write: ELEVENLABS_API_KEY = [your API key] OR add your API key in the application settings.")
-
-# TODO: for that to work you have to make a file called '.env_'. In there write: ELEVENLABS_API_KEY = [your API key]
-# TODO: see how that can be generated automatically on project setup!!
-
-# If API key is not set, prompt the user to enter it
-if not get_api_key():
-    set_api_key(ELEVENLABS_API_KEY)
-    log.info("API key is set to default value.")
-
 
 class ElevenLabsAPIWidget(MDScreen):
     settings = ObjectProperty(None)
     title = StringProperty()
+    # property values shown in widget
     api_key_input = ObjectProperty(None)
     voice_selection = ObjectProperty(None)
     model_selection = ObjectProperty(None)
@@ -54,17 +35,23 @@ class ElevenLabsAPIWidget(MDScreen):
         self.title = title
         self.name = ElevenLabsAPI.__name__.lower() + "_settings"
 
-    def update_api_key(self, value):
-        self.settings.api_key_text = value
-
     def transit(self, target: str, direction: str):
+        log.info("Transitioning to %s, direction: %s", target, direction)
         self.manager.transition.direction = direction
         self.manager.current = target
 
     def transit_to_self(self):
+        log.info("Transitioning to self")
         self.transit(self.name, 'right')
 
+    # Will be called, when settings widget is left.
+    def on_leave(self, *args):
+        log.info("on_leave of settings")
+        self.settings.save_settings()
 
+    def get_current_voice(self):
+        return self.voice_selection.text
+    
 class CustomSpinner(Button):
     def __init__(self, options, **kwargs):
         super().__init__(**kwargs)
@@ -78,7 +65,8 @@ class CustomSpinner(Button):
         self.dropdown.bind(on_select=lambda instance,
                            x: setattr(self, 'text', x))
 
-
+# Represents the model of the widget class (view).
+# Contains the current settings values, which sould be used by the API.
 class ElevenLabsAPISettings(BaseApiSettings):
     api_name = "ElevenLabsAPI"
     # NOTE ElevenLabs API SETTING properties (not to be mistaken with the properties of the widget, holding current selections)
@@ -98,39 +86,37 @@ class ElevenLabsAPISettings(BaseApiSettings):
         super(ElevenLabsAPISettings, self).__init__(**kwargs)
         self.widget = widget  # Save reference to the widget
         widget.settings = self  # Set the settings object in the widget
+
         # Two-way bind api-key
-        widget.api_key_input.bind(text=self.setter('api_key_text'))
+        # Changes in widget, update settings object
+        self.widget.api_key_input.bind(text=self.update_settings)
+        # Changes in settings object, update widget
         self.bind(api_key_text=self.widget.api_key_input.setter('text'))
 
-        # Binding to update environment variable with input API key
-        widget.api_key_input.bind(on_text_validate=self.update_api_key)
-
-        # Two-way bind model
-        self.widget.model_selection.bind(text=self.setter('model_text'))
+        # Two-way bindings between widget properties and settings properties
+        # Changes in widget, update settings object
+        self.widget.model_selection.bind(text=self.update_settings)
+        # Changes in settings object, update widget
         self.bind(model_text=self.widget.model_selection.setter('text'))
+
+        # Changes in widget, update settings object
+        self.widget.voice_selection.bind(text=self.update_settings)
+        # Changes in settings object, update widget
+        self.bind(voice_text=self.widget.voice_selection.setter('text'))
+
         self.load_settings()
 
+    # loads the settings from the settings file.
     def load_settings(self):
         app_instance = App.get_running_app()
         self.api_key_text = app_instance.global_settings.get_setting(
-            self.api_name, "api_key", default=ELEVENLABS_API_KEY)
+            self.api_name, "api_key", default="")
         self.voice_text = app_instance.global_settings.get_setting(
             self.api_name, "voice", default="Serena")
         self.model_text = app_instance.global_settings.get_setting(
-            self.api_name, "model", default="multilingual v2")
+            self.api_name, "model", default=ElevenLabsAPI.get_models()[0])
 
-        # Update de widget UI-elementen nadat de instellingen zijn geladen
-        # if self.widget and self.widget.api_key_input:
-        #     self.widget.api_key_input.text = self.api_key_text
-        # else:
-        #     log.error("api_key_input is not correctly initialized.")
-
-        # if self.widget and self.widget.voice_selection:
-        #     self.widget.voice_selection.text = self.voice_text
-
-        # if self.widget and self.widget.model_selection:
-        #     self.widget.model_selection.text = self.model_text
-
+    # saves the settings to the settings file.
     def save_settings(self):
         app_instance = App.get_running_app()
         app_instance.global_settings.update_setting(
@@ -140,31 +126,13 @@ class ElevenLabsAPISettings(BaseApiSettings):
         app_instance.global_settings.update_setting(
             self.api_name, "model", self.model_text)
 
-    def on_api_key_entered(self):
-        new_api_key = self.widget.api_key_input.text
-        log.info("New API key entered: %s", new_api_key)
-
-        # update API-key in settings
-        self.settings.api_key_text = new_api_key
-        self.update_api_key(new_api_key)
-        self.settings.save_settings()
-
-        log.info("Settings updated with new API key.")
-
-    def update_api_key(self, value: str):
-        new_api_key = self.widget.api_key_input.text
-        print("update_api_key called")
-        print("New API key value:", new_api_key)
-        self.api_key_text = new_api_key
-        self.save_settings()
-        dotenv_file = dotenv.find_dotenv()
-        dotenv.load_dotenv(dotenv_file)
-        # print("heeeeh",os.environ["ELEVENLABS_API_KEY"])
-        os.environ["ELEVENLABS_API_KEY"] = new_api_key
-        # print("heeeeh2",os.environ["ELEVENLABS_API_KEY"])
-        dotenv.set_key(dotenv_file, "ELEVENLABS_API_KEY",
-                       os.environ["ELEVENLABS_API_KEY"])
-
+    # Updates the settings: Stores current values of the widget properties in the settings properties.
+    def update_settings(self, instance, value):
+        log.info("updating %s=%s",instance, value)
+        self.api_key_text=self.widget.api_key_input.text
+        self.model_text=self.widget.model_selection.text
+        self.voice_text=self.widget.voice_selection.text
+        #self.save_settings()
 
 class ElevenLabsAPI():
     _models = [
@@ -172,38 +140,25 @@ class ElevenLabsAPI():
         "eleven_monolingual_v1"
     ]
 
-    def __init__(self, settings: ElevenLabsAPISettings = None, api_key: str = ELEVENLABS_API_KEY, voice_name: str = 'Serena', model: str = "eleven_multilingual_v2"):
+    def __init__(self, settings: ElevenLabsAPISettings = None):
         logging.debug("Initializing ElevenLabsAPI instance...")
         self.settings = settings
-        if settings is None:
-            if model not in self._models:
-                raise ValueError(
-                    f'Model not supported: {model} (must be one of: {", ".join(self._models)})')
-            if (not api_key):
-                api_key = get_api_key()
-                if (not api_key):
-                    raise ValueError(
-                        "No API key provided and no API key found in environment variable (ELEVENLABS_API_KEY)")
-            else:
-                set_api_key(api_key)
+        self.init_api()
 
-            # print("API key:", get_api_key())
-            # print("Voice name:", voice_name)
-            # print("Model:", model)
+    def init_api(self):
+        self.settings.load_settings()
+        # Try to init the API.
+        # This will only work, if the settings are configured properly.
+        try:
+            set_api_key(self.settings.api_key_text)
+            self.settings.widget.model_names=self.get_models()
+            self.settings.widget.voice_names=self.get_voices()
+        except:
+            log.error("API Key invalid: %s",self.settings.api_key_text)
+        finally:
+            self.settings.widget.model_names=self.get_models()
 
-            self.voice = next(
-                (v for v in voices() if v.name == voice_name), None)
-            if (not self.voice):
-                raise ValueError(
-                    f'Voice not found: {voice_name} (available voices: {", ".join(v.name for v in voices())})')
-            self.model = model
-        else:
-            # print("API key:", get_api_key())
-            # print("Voice name:", voice_name)
-            # print("Model:", model)
-
-            self.settings = settings
-
+    # FIXME: This is a duplicate to get_voices()
     def get_available_voices(self):
         """
         get list of available voices
@@ -212,7 +167,15 @@ class ElevenLabsAPI():
         # Dit kan een HTTP-verzoek naar de API zijn of het ophalen van stemnamen uit een lokaal bestand of database
         # Retourneer een lijst met stemnamen
         # Dit is een voorbeeld, vervang dit door de echte implementatie
-        return [voice.name for voice in voices()]
+        try:
+            self.init_api()
+            return [voice.name for voice in voices()]
+        except: return []
+
+    def set_voice(self, voice_name):
+        self.settings.voice_text=voice_name
+        self.settings.save_settings()
+        self.init_api()
 
     # neue Funktion
     def convert_text(self, text: str):
@@ -241,34 +204,26 @@ class ElevenLabsAPI():
             out_filename (str): output filename (Optional, if not provided, the audio will be played instead of saved)
         """
         print(input)
+        self.init_api()
+
         if (not input):
             raise ValueError("Input must not be empty")
+
         shouldStream = True if not out_filename else False
-        if self.settings is None:
-            text = input, voice = self.voice, model = self.model, stream = shouldStream
+        self.voice = next((v for v in voices() if v.name ==
+                           self.settings.voice_text), None)
+        self.model = self.settings.model_text
+        set_api_key(self.settings.api_key_text)
 
-            audio = self.generate(text, voice, model, stream)
-            print(text)
-            if (shouldStream):
-                print("this is the shouldstream")
-                play(audio)
-            else:
-                save(audio, out_filename)
+        # TODO: hier neuer Teil
+        converted_input = self.convert_text(input)
+
+        audio = generate(text=converted_input, voice=self.voice,
+                         model=self.model, stream=shouldStream)
+        if (shouldStream):
+            play(audio)
         else:
-            self.voice = next((v for v in voices() if v.name ==
-                               self.settings.voice_text), None)
-            self.model = self._models[0]
-            set_api_key(self.settings.api_key_text)
-
-            # TODO: hier neuer Teil
-            converted_input = self.convert_text(input)
-
-            audio = generate(text=converted_input, voice=self.voice,
-                             model=self.model, stream=shouldStream)
-            if (shouldStream):
-                play(audio)
-            else:
-                save(audio, out_filename)
+            save(audio, out_filename)
 
     def play(self, input: str):
         """
@@ -291,7 +246,7 @@ class ElevenLabsAPI():
                 audio = AudioSegment.from_file(audio_path, format="mp4")
 
             pyplay(audio)
-    def save(): 
+    def save(self):
         """
         now you can choose where to save the file .
         """
@@ -312,7 +267,6 @@ class ElevenLabsAPI():
     @staticmethod
     def get_voices() -> List[str]:
         return [v.name for v in voices()]
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
