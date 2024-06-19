@@ -47,7 +47,7 @@
                         text: 'Voice Name:'
                     Spinner:
                         id: voice_name_spinner
-                        text: root.voice_names[0] if root.voice_names else 'No voices available'
+                        text: root.get_current_voice() if root.get_current_voice() else 'No voices available'
                         values: root.voice_names
                 MDListItem:
                     MDLabel:
