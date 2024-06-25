@@ -225,7 +225,7 @@ class MainScreen(MDScreen):
             except NotImplementedError:
                 msg = "Text to speech synthesis not implemented for this API."
                 log.error("%s: %s", self.__class__.__name__, msg)
-                self.label_status.text = msg
+                self.ids.label_status.text = msg
             except Exception as e:
                 msg = "Error during synthesis"
                 log.error("%s: %s: %s", self.__class__.__name__, msg, e)
