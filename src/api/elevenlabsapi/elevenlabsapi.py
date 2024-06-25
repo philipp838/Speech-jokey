@@ -244,8 +244,8 @@ class ElevenLabsAPI():
                 audio = AudioSegment.from_file(audio_path, "mp3")
             except:
                 audio = AudioSegment.from_file(audio_path, format="mp4")
-
             pyplay(audio)
+
     def save(): 
         """
         now you can choose where to save the file .
