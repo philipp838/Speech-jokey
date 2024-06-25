@@ -1,12 +1,10 @@
 name: Windows Build
 
 on:
-  push:
-    branches:
-      - main # Broken now, since we are pulling from the PR commit
   pull_request:
     branches:
       - main
+      - develop
 
 jobs:
   windows:
