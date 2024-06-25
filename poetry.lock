@@ -531,7 +531,7 @@ description = "Set of widgets for Kivy inspired by Google's Material Design"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "master.zip", hash = "sha256:52f1ccd45af1881d524c488ca050ab6cc3687e4192fafc5f9fd507d44d9be6cb"},
+    {file = "5fb6654a83ffa1a20bd9c617be17986cc2e0778b.zip", hash = "sha256:5ae77f186deb99731c9169aae20bcd1f1bfb771a5ae1e70fc5c0cf04d0211956"},
 ]
 
 [package.dependencies]
@@ -546,7 +546,7 @@ docs = ["furo", "sphinx", "sphinx-autoapi", "sphinx-copybutton", "sphinx-notfoun
 
 [package.source]
 type = "url"
-url = "https://github.com/kivymd/KivyMD/archive/master.zip"
+url = "https://github.com/kivymd/KivyMD/archive/5fb6654a83ffa1a20bd9c617be17986cc2e0778b.zip"
 
 [[package]]
 name = "macholib"
@@ -1310,4 +1310,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "7ae2e7bb55d268ad0f3282b1f3feb8ddfbf788f62affcc7f59130c0d3b4b00ec"
+content-hash = "b558cacd3fc1bd058bfedd3fb5a708ce15e6f3acebdabdd6163fbe5279105f0a"
