@@ -123,29 +123,39 @@ This is what the application currently looks like.
 Some of the screenshots following this are a little different, but hopefully they get the concept across for others to contribute.
 
 ## Loading the text
-The idea of Speech Jokey is to give the user the possibility to edit the text that he previously wrote, loading it in text input of the application. 
+Using the loading button, the user can select a saved text file and upload it in the text input. The text can still be edited.
 
 <details><summary>Load</summary><img width="933" alt="f61731c8-2529-4369-a9df-3a00e0e86f1c" src="https://github.com/HackXIt/assist-heidi-speech-jokey/assets/1595680/672ef958-2c51-4865-afd5-3eaabe9c43be"></details>
 
 ## Editing the text
-The editing part is facilitated thanks to the fact that the line where the cursor is, will be "zoomed". This means that the user will visualize that line with a bigger linespace before and
-after and with a bigger space inbetween words. 
+To simplify editing the text, the cursor set via eye tracker is always placed at the end of a word. To move the cursor one position to the left or right, the user can use the arrow buttons at the bottom left of the application.
 
 <details><summary>Editing</summary><img width="935" alt="9fe969ae-a399-4d36-9f8d-ca0d118edc63" src="https://github.com/HackXIt/assist-heidi-speech-jokey/assets/1595680/ce8be5b4-ce4c-4943-befc-1e5fc54878d9"></details>
 
 The editing feature is adressed especially to people who need eye tracking devices to move the cursor. 
 
+## Selecting voice
+The voice can be selected using the voice selection button or in the settings. All available voices are listed and the selected voice is displayed. 
+
+## Selecting model
+The model can be selected in the settings. All available models are listed and the selected model is displayed. 
+
+## Entering API Key
+To use ElevenLabs API the generated API Key must be entered in the settings.
+
 ## SSML features for encoding intonation
-The buttons (_Add Break, Change Pitch, Emphasize_) enable to insert SSML tags between the text for the speech syntesis. 
+To change the intonation adding breaks into text, shortcuts are implented. The break time can be adjusted in the code:
+* , adds a break of 0.0s
+* . adds a break of 0.5s
+* ; adds a break of 0.5s
 
 <details><summary>Add Break</summary><img width="932" alt="39508a72-aee9-49f7-aa97-c2bd5eb76607" src="https://github.com/HackXIt/assist-heidi-speech-jokey/assets/1595680/2dff8a4d-2ef7-4245-b596-6584dd006c25"></details>
-<details><summary>Change Pitch</summary><img width="936" alt="31dca5c9-76db-4a04-8b6d-3eef8a2f97f8" src="https://github.com/HackXIt/assist-heidi-speech-jokey/assets/1595680/0943c34f-b78b-41cb-bc73-edc978fdd5a6"></details>
-<details><summary>Emphasize</summary><img a="https://github.com/ChiaraCalvo/git-exercise/assets/146334030/31dca5c9-76db-4a04-8b6d-3eef8a2f97f8"/></details>
 
-## Generation of an audio file 
-An audio file is generated thanks to a selected Text-To-Speech API voice. 
+## Synthesizing of an audio file 
+An audio file is generated and will be saved in a .wav file using the synthesizing button. 
 
-The user can listen to it, pause it and play it. 
+## Playing the audio file
+Before playing the audio file, a .wav file has to be synthesized using the synthesizing button.
 
 ## Saving the final audio file 
 The final version of the edited text can be saved as a file in audio format.
