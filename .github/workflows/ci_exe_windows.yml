@@ -3,7 +3,7 @@ name: Windows Build
 on:
   push:
     branches:
-      - main
+      - main # Broken now, since we are pulling from the PR commit
   pull_request:
     branches:
       - main
@@ -16,9 +16,14 @@ jobs:
       packages: write
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
-        fetch-depth: 0
+        sparse-checkout: |
+          .github
+          src
+          pyproject.toml
+          poetry.lock
+        ref: ${{ github.event.pull_request.head.sha }}
 
     - name: Execute script to .exe in Windows
       run: ".github/scripts/windows/build_exe_onefile.ps1"
