@@ -59,10 +59,12 @@ class MainScreen(MDScreen):
         Clock.schedule_once(self.set_focus, 0.1)
         self.load_current_voice()
         App.get_running_app().api.settings.bind(voice_text=self.update_current_voice)
+
     def load_current_voice(self): 
         app_instance = App.get_running_app()
         # print(f"API in main_screen: ", app_instance.api)
         self.selected_voice = app_instance.global_settings.get_setting("ElevenLabsAPI", "voice")
+
     def update_current_voice(self, instance, value):
         self.selected_voice = value
 
@@ -223,7 +225,7 @@ class MainScreen(MDScreen):
             except NotImplementedError:
                 msg = "Text to speech synthesis not implemented for this API."
                 log.error("%s: %s", self.__class__.__name__, msg)
-                self.label_status.text = msg
+                self.ids.label_status.text = msg
             except Exception as e:
                 msg = "Error during synthesis"
                 log.error("%s: %s: %s", self.__class__.__name__, msg, e)
