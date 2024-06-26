@@ -160,7 +160,10 @@ Before playing the audio file, a .wav file has to be synthesized using the synth
 ## Saving the final audio file 
 The final version of the edited text can be saved as a file in audio format.
 
+## Demonstration of SpeechJokey
+Here is a video of the intended features of the application.
 
+<video src=".\src\assets\speech-jokey-demo.mp4" controls></video>
 
 # Tutorials for beginner contributors
 ## How to use Git
