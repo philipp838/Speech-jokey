@@ -172,8 +172,12 @@ To change the intonation adding breaks into text, shortcuts are implented. The b
 ## Synthesizing of an audio file 
 An audio file is generated using the synthesizing button. 
 
+![picture of application](./doc/screenshots/synthesize%20confirmation.jpg)
+
 ## Playing the audio file
 Before playing the audio file, an audio file has to be synthesized using the synthesizing button.
+
+The file can then be played with the play button.
 
 ## Saving the text file 
 The final version of the edited text can be saved as a text file.
