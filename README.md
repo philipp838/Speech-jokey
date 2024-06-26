@@ -152,13 +152,13 @@ To change the intonation adding breaks into text, shortcuts are implented. The b
 <details><summary>Add Break</summary><img width="932" alt="39508a72-aee9-49f7-aa97-c2bd5eb76607" src="https://github.com/HackXIt/assist-heidi-speech-jokey/assets/1595680/2dff8a4d-2ef7-4245-b596-6584dd006c25"></details>
 
 ## Synthesizing of an audio file 
-An audio file is generated and will be saved in a .wav file using the synthesizing button. 
+An audio file is generated using the synthesizing button. 
 
 ## Playing the audio file
-Before playing the audio file, a .wav file has to be synthesized using the synthesizing button.
+Before playing the audio file, an audio file has to be synthesized using the synthesizing button.
 
-## Saving the final audio file 
-The final version of the edited text can be saved as a file in audio format.
+## Saving the text file 
+The final version of the edited text can be saved as a text file.
 
 ## Demonstration of SpeechJokey
 Here is a video of the intended features of the application.
