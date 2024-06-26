@@ -117,39 +117,57 @@ poetry run pyinstaller SpeechJokey.spec
 
 This is what the application currently looks like.
 
-![picture of application](./doc/picture%20of%20application.png)
+![picture of application](./doc/screenshots/application.png)
+![picture of application](./doc/screenshots/application2.png)
 
+The settings page looks like this:
+![picture of application](./doc/screenshots/settings.png)
 
-Some of the screenshots following this are a little different, but hopefully they get the concept across for others to contribute.
+Specific settings for the speech engine ElevenLabs is looking like this:
+![picture of application](./doc/screenshots/settings%20elevenlabs.png)
+
 
 ## Loading the text
 Using the loading button, the user can select a saved text file and upload it in the text input. The text can still be edited.
 
-<details><summary>Load</summary><img width="933" alt="f61731c8-2529-4369-a9df-3a00e0e86f1c" src="https://github.com/HackXIt/assist-heidi-speech-jokey/assets/1595680/672ef958-2c51-4865-afd5-3eaabe9c43be"></details>
+![picture of application](./doc/screenshots/load%20file.png)
+![picture of application](./doc/screenshots/loaded%20text.png)
 
 ## Editing the text
 To simplify editing the text, the cursor set via eye tracker is always placed at the end of a word. To move the cursor one position to the left or right, the user can use the arrow buttons at the bottom left of the application.
 
-<details><summary>Editing</summary><img width="935" alt="9fe969ae-a399-4d36-9f8d-ca0d118edc63" src="https://github.com/HackXIt/assist-heidi-speech-jokey/assets/1595680/ce8be5b4-ce4c-4943-befc-1e5fc54878d9"></details>
-
-The editing feature is adressed especially to people who need eye tracking devices to move the cursor. 
+The editing feature is addressed especially to people who need eye tracking devices to move the cursor. 
 
 ## Selecting voice
-The voice can be selected using the voice selection button or in the settings. All available voices are listed and the selected voice is displayed. 
+The voice can be selected using the voice selection button or in the settings. All available voices are listed. 
+On the selection of a voice a Popup will appear and the selected voice is displayed. 
+
+The currently selected voice is always displayed on the voice selection button.
+
+Using the voice selection button:
+![picture of application](./doc/screenshots/select%20voice.png)
+![picture of application](./doc/screenshots/selected%20voice.png)
+![picture of application](./doc/screenshots/after%20voice%20selection.png)
+
+Choosing the voice directly in the settings:
+![picture of application](./doc/screenshots/settings%20voice.png)
 
 ## Selecting model
 The model can be selected in the settings. All available models are listed and the selected model is displayed. 
 
+![picture of application](./doc/screenshots/settings%20model.png)
+
+
 ## Entering API Key
 To use ElevenLabs API the generated API Key must be entered in the settings.
+
+![picture of application](./doc/screenshots/settings%20elevenlabs.png)
 
 ## SSML features for encoding intonation
 To change the intonation adding breaks into text, shortcuts are implented. The break time can be adjusted in the code:
 * , adds a break of 0.0s
 * . adds a break of 0.5s
 * ; adds a break of 0.5s
-
-<details><summary>Add Break</summary><img width="932" alt="39508a72-aee9-49f7-aa97-c2bd5eb76607" src="https://github.com/HackXIt/assist-heidi-speech-jokey/assets/1595680/2dff8a4d-2ef7-4245-b596-6584dd006c25"></details>
 
 ## Synthesizing of an audio file 
 An audio file is generated using the synthesizing button. 
