@@ -11,7 +11,11 @@ The designed logo for the application is currently:
 
 ![speech-jokey](https://github.com/HackXIt/assist-heidi-speech-jokey/assets/1595680/b5cd0eb0-2baa-4a0c-b463-ace9526c8def)
 
-A [video showcase](https://github.com/HackXIt/assist-heidi-speech-jokey/blob/f180d5f0ac2c26254804e884c03c75cedc8ba890/doc/SpeechJokey_PreRelease-Development_Showcase.mp4) of the current project state of the running application can be found in the `/doc` folder.
+## Demo video
+
+Demo of the speech jokey program showing the generation of synthetic speech using the Elevenlabs API.
+
+[![Screencast of Speech Jokey showing user interface options and different synthetic voices](https://img.youtube.com/vi/V3vPxYFN38s/0.jpg)](https://www.youtube.com/watch?v=V3vPxYFN38s)
 
 ## Speech synthesis
 The application currently supports the following speech synthesis engines:
