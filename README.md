@@ -13,13 +13,13 @@ The designed logo for the application is currently:
 
 ## Demo video
 
-Demo of the speech jokey program showing the generation of synthetic speech using the Elevenlabs API.
+[Demo video of the speech jokey program](https://www.youtube.com/watch?v=V3vPxYFN38s) showing the generation of synthetic speech using the Elevenlabs API.
 
 [![Screencast of Speech Jokey showing user interface options and different synthetic voices](https://img.youtube.com/vi/V3vPxYFN38s/0.jpg)](https://www.youtube.com/watch?v=V3vPxYFN38s)
 
 ## Speech synthesis
 The application currently supports the following speech synthesis engines:
-* ElevenLabs API
+* [ElevenLabs API](https://elevenlabs.io/api)
 
 # Project setup
 The project is based on Python `3.11`, but it also supports lower version down to `3.9`. To install Python, follow the instructions on the [Python website](https://www.python.org/downloads/).
