@@ -63,10 +63,10 @@ class MainScreen(MDScreen):
     def load_current_voice(self): 
         app_instance = App.get_running_app()
         # print(f"API in main_screen: ", app_instance.api)
-        self.selected_voice = app_instance.global_settings.get_setting("ElevenLabsAPI", "voice")
+        self.selected_voice = app_instance.global_settings.get_setting("ElevenLabsAPI", "voice","")
 
     def update_current_voice(self, instance, value):
-        self.selected_voice = value
+        self.selected_voice = value if value is not None else ""
 
     def on_menu_open(self):
         menu_items = [
