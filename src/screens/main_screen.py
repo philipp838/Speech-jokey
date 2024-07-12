@@ -206,7 +206,7 @@ class MainScreen(MDScreen):
         api = App.get_running_app().api
         if api:
             try:
-                api.play(self.ids.text_main.text)
+                api.play()
             except NotImplementedError:
                 log.error(
                     "%s: Audio playback not implemented for this API.", self.__class__.__name__)
