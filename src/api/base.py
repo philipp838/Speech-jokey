@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
+from kivy.app import App
+
 import os
 from pathlib import Path
 import logging
@@ -83,8 +85,8 @@ class BaseApi(ABC, EventDispatcher):
         Only override it, if you need a special playback.
         """
         # Placeholder implementation
-        src_path = str(Path(os.path.dirname(__file__)).parents[1])
-        tmp_path = os.path.join(src_path, 'tmp')
+        app_instance = App.get_running_app()
+        tmp_path = app_instance.global_settings.get_tmp_dir()
         if len(os.listdir(tmp_path)) == 0:
             logging.error("Directory is empty. Press generate first!")
         else:
