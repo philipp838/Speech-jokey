@@ -1,43 +1,57 @@
 # -*- mode: python ; coding: utf-8 -*-
 from kivy_deps import sdl2, glew
 from kivymd import hooks_path as kivymd_hooks_path
+app_name = 'SpeechJokey'
 
 block_cipher = None
-app_name = 'SpeechJokey'
-win_icon = '.\speech-jokey.ico'
+
+path = os.path.abspath(".")
 
 a = Analysis(
     ['src\\main.py'],
-    pathex=[],
+    pathex=[path,'.\.venv'],
     binaries=[],
     datas=[],
-    hiddenimports=['win32timezone'],
+    hiddenimports=['win32timezone', 'pkg_resources.extern', 'kivymd.icon_definitions', 'elevenlabs'],
     hookspath=[kivymd_hooks_path],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
+    win_no_prefer_redirects=False,
+    win_private_assemblies=False,
+    cipher=block_cipher,
     noarchive=False,
 )
-pyz = PYZ(a.pure)
+pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 exe = EXE(
     pyz,
-    Tree('src\\'),
     a.scripts,
-    a.binaries,
-    a.datas,
-    *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)],
+    [],
+    exclude_binaries=True,
     name=app_name,
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    upx_exclude=[],
-    runtime_tmpdir=None,
     console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=['speech-jokey.ico'],
+)
+coll = COLLECT(
+    exe,
+    Tree('src\\'),
+    a.scripts,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)],
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    name=app_name,
 )
