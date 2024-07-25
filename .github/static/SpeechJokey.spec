@@ -1,4 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
+
+# Spec-File for Windows
+
 from kivy_deps import sdl2, glew
 from kivymd import hooks_path as kivymd_hooks_path
 app_name = 'SpeechJokey'
@@ -8,8 +11,8 @@ block_cipher = None
 path = os.path.abspath(".")
 
 a = Analysis(
-    ['src\\main.py'],
-    pathex=[path,'.\.venv'],
+    ['src/main.py'],
+    pathex=[path],
     binaries=[],
     datas=[],
     hiddenimports=['win32timezone', 'pkg_resources.extern', 'kivymd.icon_definitions', 'elevenlabs'],
@@ -44,7 +47,7 @@ exe = EXE(
 )
 coll = COLLECT(
     exe,
-    Tree('src\\'),
+    Tree('src/'),
     a.scripts,
     a.binaries,
     a.zipfiles,
