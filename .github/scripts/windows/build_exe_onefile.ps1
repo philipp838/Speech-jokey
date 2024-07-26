@@ -43,8 +43,8 @@ Write-Output 'INFO: Building executable with PyInstaller'
 poetry run pyinstaller $TargetSpecFile --log-level=ERROR --clean --noconfirm
 
 # Check for build success and output location
-if (Test-Path "dist\$Target.exe") {
-    Write-Output "INFO: Build successful. Executable located in dist\$Target.exe"
+if (Test-Path "dist\$Target") {
+    Write-Output "INFO: Build successful. Executable located in dist\$Target"
 } else {
     Write-Output 'ERROR: Build failed.'
     exit 1
