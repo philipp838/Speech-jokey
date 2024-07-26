@@ -33,12 +33,13 @@ jobs:
       with:
         type: 'zip'
         filename: 'SpeechJokey.zip'
-        path: dist/SpeechJokey/
+        directory: dist
+        path: SpeechJokey/
                
     - uses: actions/upload-artifact@v4
       with:
         name: SpeechJokey-windows-x86_64
-        path: SpeechJokey.zip
+        path: dist/SpeechJokey.zip
 
     # Will be enabled again once we have a first pre-release with meaningful changes
     # - name: Generate Changelog
@@ -71,6 +72,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: SpeechJokey.zip
+        asset_path: dist/SpeechJokey.zip
         asset_name: SpeechJokey-windows-x86_64.zip
         asset_content_type: application/zip
