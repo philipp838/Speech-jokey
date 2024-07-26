@@ -25,9 +25,14 @@ jobs:
     - name: Execute script to .exe in Windows
       run: ".github/scripts/windows/build_exe_onefile.ps1"
       shell: powershell -Command "& '{0}'"
-    - name: Zip artifact
-      run: | 
-        zip --junk-paths dist/SpeechJokey dist/SpeechJokey.zip
+    - name: Archive Release
+      uses: thedoctor0/zip-release@0.7.5
+      with:
+        type: 'zip'
+        filename: 'SpeechJokey.zip'
+        directory: dist
+        path: SpeechJokey/
+               
     - uses: actions/upload-artifact@v4
       with:
         name: SpeechJokey-windows-x86_64
