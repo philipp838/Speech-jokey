@@ -28,13 +28,13 @@ jobs:
       run: ".github/scripts/windows/build_exe_onefile.ps1"
       shell: powershell -Command "& '{0}'"
 
-#    - name: Archive Release
-#      uses: thedoctor0/zip-release@0.7.5
-#      with:
-#        type: 'zip'
-#        filename: 'SpeechJokey.zip'
-#        directory: dist
-#        path: SpeechJokey/
+    - name: Archive Release
+      uses: thedoctor0/zip-release@0.7.5
+      with:
+        type: 'zip'
+        filename: 'SpeechJokey.zip'
+        directory: dist
+        path: SpeechJokey/
                
     - uses: actions/upload-artifact@v4
       with:
