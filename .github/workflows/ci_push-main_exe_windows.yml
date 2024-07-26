@@ -73,3 +73,4 @@ jobs:
         asset_path: ./dist/SpeechJokey.zip
         asset_name: SpeechJokey-windows-x86_64.zip
         asset_content_type: application/zip
+        
