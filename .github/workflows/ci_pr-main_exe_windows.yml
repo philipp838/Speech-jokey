@@ -49,29 +49,29 @@ jobs:
     #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     # **Changelog:**
     # ${{ steps.changelog.outputs.changelog }}
-
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-          tag_name: pre-release-${{ github.ref_name }}-${{ github.sha }}-${{ github.run_number }}
-          release_name: SpeechJokey Build (Windows) - ${{ github.ref_name }} @ ${{ github.sha }}
-          body: |
-            **Build Details:**
-            - **Branch:** ${{ github.ref_name }}
-            - **Commit:** ${{ github.sha }}
-            - **Build Number:** ${{ github.run_number }}
-            - **Build Date:** ${{ github.event.head_commit.timestamp }}
-          draft: false
-          prerelease: true          
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: dist/SpeechJokey.zip
-        asset_name: SpeechJokey-windows-x86_64.zip
-        asset_content_type: application/zip
+#
+#   - name: Create Release
+#      id: create_release
+#      uses: actions/create-release@v1
+#      env:
+#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      with:
+#         tag_name: pre-release-${{ github.ref_name }}-${{ github.sha }}-${{ github.run_number }}
+#          release_name: SpeechJokey Build (Windows) - ${{ github.ref_name }} @ ${{ github.sha }}
+#          body: |
+#            **Build Details:**
+#            - **Branch:** ${{ github.ref_name }}
+#            - **Commit:** ${{ github.sha }}
+#            - **Build Number:** ${{ github.run_number }}
+#            - **Build Date:** ${{ github.event.head_commit.timestamp }}
+#          draft: false
+#          prerelease: true          
+#    - name: Upload Release Asset
+#      uses: actions/upload-release-asset@v1
+#      env:
+#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      with:
+#        upload_url: ${{ steps.create_release.outputs.upload_url }}
+#        asset_path: dist/SpeechJokey.zip
+#        asset_name: SpeechJokey-windows-x86_64.zip
+#        asset_content_type: application/zip
