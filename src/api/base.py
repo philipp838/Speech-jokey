@@ -71,6 +71,7 @@ class BaseApi(ABC, EventDispatcher, metaclass=ABCMeta):
     _instance = None
     buffersize = 2
     blocksize = 2048
+    settings = None
 
     @classmethod
     def __new__(cls, *args, **kwargs):
@@ -169,5 +170,40 @@ class BaseApi(ABC, EventDispatcher, metaclass=ABCMeta):
     def reset_api(self):
         """
         This method must be overridden in derived classes to reset the API, e.g. reset the API key.
+        """
+        pass
+
+    @abstractmethod
+    def get_available_voice_names(self):
+        """
+        Returns a list of available voice names.
+        """
+        pass
+
+    @abstractmethod
+    def get_available_model_names(self):
+        """
+        Returns a list of available model names.
+        """
+        pass
+
+    @abstractmethod
+    def set_voice_name(self, voice_name):
+        """
+        Sets the active voice name.
+        """
+        pass
+
+    @abstractmethod
+    def text_to_api_format(self, text):
+        """
+        Converts the given text to the API specific format, e.g. SSML syntax
+        """
+        pass
+
+    @abstractmethod
+    def text_from_api_format(self, text):
+        """
+        Converts the given text from the API specific format, e.g. SSML syntax to plain text
         """
         pass

@@ -217,7 +217,6 @@ class ElevenLabsAPI(BaseApi):
 
         return self.models
 
-    # Returns a list of available voice names.
     def get_available_voice_names(self) -> List[str]:
         try:
             voice_names=[voice.name for voice in self.get_available_voices()]
@@ -241,7 +240,7 @@ class ElevenLabsAPI(BaseApi):
         self.settings.save_settings()
 
     # Convert the text to a format that the ElevenLabs API can process. This can be converting from simple text to SSML.
-    def convert_text(self, text: str):
+    def text_to_api_format(self, text: str):
         text_arr = list(text)
         output_text = ""
         for char in text_arr:
@@ -257,6 +256,10 @@ class ElevenLabsAPI(BaseApi):
 
             output_text = output_text + char
         return output_text
+
+    def text_from_api_format(self, text):
+        raise NotImplementedError("text_from_api_format not implemented")
+        pass
 
     # Synthesize the input text using the ElevenLabs API.
     def synthesize(self, input: str, out_filename: str = None):
@@ -280,7 +283,7 @@ class ElevenLabsAPI(BaseApi):
         #set_api_key(self.settings.api_key_text)
 
         # TODO: hier neuer Teil
-        converted_input = self.convert_text(input)
+        converted_input = self.text_to_api_format(input)
 
         try:
             audio = self.elevenlabs_ref.generate(text=converted_input, voice=self.voice,
