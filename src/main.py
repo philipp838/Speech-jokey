@@ -12,6 +12,7 @@ from kivymd.uix.list import MDListItemTrailingIcon
 import os
 import sys
 from pathlib import Path
+
 # Custom
 from screens.about import About
 from screens.settings import Settings
@@ -60,10 +61,11 @@ class SpeechJokey(MDApp):
         self.apis = load_apis()
         self.api = self.apis.get("ElevenLabsAPI", None)
         example_api = self.apis.get("ExampleAPI", None)
+
         self.sm.add_widget(MainScreen(title="Speech Jokey", name="main"))
         self.settings = Settings(title="Settings", name="settings")
         self.sm.add_widget(self.settings)
-        self.settings.setup_apis([self.api, example_api])
+        self.settings.setup_apis(self.apis.values())
         self.sm.add_widget(About(title="About", name="about"))
         return self.sm
 
