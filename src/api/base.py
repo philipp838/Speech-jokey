@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, ABCMeta
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
 from kivy.app import App
@@ -67,7 +67,7 @@ class BaseApiSettings(ABC, EventDispatcher):
         """
         pass
 
-class BaseApi(ABC, EventDispatcher):
+class BaseApi(ABC, EventDispatcher, metaclass=ABCMeta):
     _instance = None
     buffersize = 2
     blocksize = 2048
@@ -101,7 +101,7 @@ class BaseApi(ABC, EventDispatcher):
             logging.info("Playing audio file %s",audio_path)
             logging.info("file exists %s",os.path.exists(audio_path))
             try:
-                t=threading.Thread(target=lambda: self.play_raw(audio_path))
+                t=threading.Thread(target=lambda: self.__play_raw(audio_path))
                 t.start()
             except Exception as error:
                 logging.error("Could not play audio file: %s, reason: %s", audio_path,error)
@@ -118,7 +118,7 @@ class BaseApi(ABC, EventDispatcher):
         """
         pass
 
-    def callback(self, outdata, frames, time, status):
+    def __play_callback(self, outdata, frames, time, status):
         assert frames == self.blocksize
         if status.output_underflow:
             print('Output underflow: increase blocksize?', file=sys.stderr)
@@ -136,7 +136,7 @@ class BaseApi(ABC, EventDispatcher):
         else:
             outdata[:] = data
 
-    def play_raw(self, filename):
+    def __play_raw(self, filename):
         self.q = queue.Queue(maxsize=self.buffersize)
         try:
             with sf.SoundFile(filename) as f:
@@ -148,7 +148,7 @@ class BaseApi(ABC, EventDispatcher):
                 stream = sd.RawOutputStream(
                     samplerate=f.samplerate, blocksize=self.blocksize,
                     channels=f.channels, dtype='float32',
-                    callback=self.callback, finished_callback=self.event.set)
+                    callback=self.__play_callback, finished_callback=self.event.set)
                 with stream:
                     timeout = self.blocksize * self.buffersize / f.samplerate
                     while data:
@@ -157,3 +157,17 @@ class BaseApi(ABC, EventDispatcher):
                     self.event.wait()  # Wait until playback is finished
         except Exception as e:
             logging.error(type(e).__name__ + ': ' + str(e))
+
+    @abstractmethod
+    def init_api(self):
+        """
+        This method must be overridden in derived classes to initialize the API, e.g. set the API key.
+        """
+        pass
+
+    @abstractmethod
+    def reset_api(self):
+        """
+        This method must be overridden in derived classes to reset the API, e.g. reset the API key.
+        """
+        pass
