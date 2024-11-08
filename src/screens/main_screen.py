@@ -167,7 +167,7 @@ class MainScreen(MDScreen):
         # print(f"This is the api used: {api}")
         print("clicked on voice selection")
         if api:
-            voice_names = api.get_available_voices()
+            voice_names = api.get_available_voice_names()
             if voice_names:
                 # make list of menu-items for every voice
                 menu_items = [
@@ -194,7 +194,7 @@ class MainScreen(MDScreen):
         # process selected voice names
         log.info("%s: Selected voice: %s", self.__class__.__name__, voice_name)
         api = App.get_running_app().api
-        api.set_voice(voice_name)
+        api.set_voice_name(voice_name)
 
         popup_window = CustomPopup(content_text=f"You selected the voice: \n{voice_name}",
                                    size_hint=(None, None), size=(400, 400))
@@ -222,20 +222,23 @@ class MainScreen(MDScreen):
         log.info(f"Using synthesized_file={synthesized_file}")
 
         if api:
+            msg=f"Text has been synthesized\nto an audio file"
             try:
                 # FIXME: Use constant or configurable output path
                 api.synthesize(self.ids.text_main.text, synthesized_file)
             except NotImplementedError:
                 msg = "Text to speech synthesis not implemented for this API."
                 log.error("%s: %s", self.__class__.__name__, msg)
-                self.ids.label_status.text = msg
+
             except Exception as e:
-                msg = "Error during synthesis"
+                msg = "Error during synthesis: \n"+str(e)
                 log.error("%s: %s: %s", self.__class__.__name__, msg, e)
-                self.ids.label_status.text = msg
-        popup_window = CustomPopup(content_text=f"Text has been synthesized\nto an audio file",
-                                   size_hint=(None, None), size=(400, 400))
-        popup_window.open()
+
+            self.ids.label_status.text = msg
+            popup_window = CustomPopup(content_text=msg,
+                                       size_hint=(None, None), size=(400, 400))
+            popup_window.open()
+
     def on_cursor_control(self):
         new_cursor_index = self.ids.text_main.cursor_index()
         old_cursor_index = self.old_cursor_index
