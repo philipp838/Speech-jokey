@@ -40,5 +40,9 @@ def load_apis():
     api_names = ["ElevenLabsAPI", "ExampleAPI"]
     apis = {}
     for name in api_names:
-        apis[name] = ApiFactory.get_api(name)
+        try:
+            apis[name] = ApiFactory.get_api(name)
+        except Exception as e:
+            log.error("Error loading API %s: %s", name, str(e))
+
     return apis
