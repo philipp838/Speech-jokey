@@ -150,7 +150,25 @@ class ExampleAPI(BaseApi):
         print("synthesizing...")
         # Placeholder implementation
         pass
-    
+
+    def get_available_voice_names(self):
+        return []
+        pass
+
+    def get_available_model_names(self):
+        return []
+        pass
+
+    def set_voice_name(self, voice_name):
+        pass
+
+    def text_to_api_format(self, text):
+        pass
+
+    def text_from_api_format(self, text):
+        return text
+        pass
+
     def do_api_specific_stuff(self):
         print(f"Doing stuff with Example setting: ...")
 
