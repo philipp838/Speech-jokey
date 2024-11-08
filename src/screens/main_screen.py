@@ -164,8 +164,7 @@ class MainScreen(MDScreen):
 
     def on_select_voice(self):
         api = App.get_running_app().api
-        # print(f"This is the api used: {api}")
-        print("clicked on voice selection")
+
         if api:
             voice_names = api.get_available_voice_names()
             if voice_names:
