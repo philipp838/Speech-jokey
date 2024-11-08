@@ -140,6 +140,12 @@ class ExampleAPI(BaseApi):
 
         # NOTE Any API specific initialization code can be placed here
 
+    def init_api(self):
+        pass
+
+    def reset_api(self):
+        pass
+
     def synthesize(self, input: str, file: str):
         print("synthesizing...")
         # Placeholder implementation
