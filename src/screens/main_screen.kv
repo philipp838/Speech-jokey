@@ -162,16 +162,6 @@
             pos_hint: {"center_x": 0.5}  # Zentriere das GridLayout horizontal
 
             Button:
-                text: "🗣️"
-                font_name: "symbola"
-                font_size: '40sp'
-                size_hint: None, None
-                size: 100, 100
-                color: 0, 0, 0, 1
-                background_normal: ''
-                on_release: root.insert_emoji("🗣️")
-
-            Button:
                 text: "⏸️"
                 font_name: "symbola"
                 font_size: '40sp'
@@ -250,6 +240,16 @@
                 color: 0, 0, 0, 1
                 background_normal: ''
                 on_release: root.insert_emoji("🌏")
+
+            Button:
+                text: ""
+                font_name: "symbola"
+                font_size: '40sp'
+                size_hint: None, None
+                size: 100, 100
+                color: 0, 0, 0, 1
+                background_normal: ''
+                on_release: root.insert_emoji("")
 
 <Popups>:
     Label:
