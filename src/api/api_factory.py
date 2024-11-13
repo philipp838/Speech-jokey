@@ -31,13 +31,12 @@ class ApiFactory:
             log.debug("%s: %s", __class__.__name__, traceback.format_exc())
             return None
 
-# Dynamic loading of APIs based on directory structure
-
 
 def load_apis():
     # TODO Implement dynamic loading based on directory structure instead of a static name list
     # api_names = [name for name in os.listdir("api") if os.path.isdir(os.path.join("api", name))]
-    api_names = ["ElevenLabsAPI", "ExampleAPI"]
+    #api_names = ["ElevenLabsAPI", "OpenAIAPI", "AmazonPollyAPI", "MSAzureAPI"]
+    api_names = ["ElevenLabsAPI"]
     apis = {}
     for name in api_names:
         apis[name] = ApiFactory.get_api(name)

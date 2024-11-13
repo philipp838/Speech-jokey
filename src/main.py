@@ -58,14 +58,17 @@ class SpeechJokey(MDApp):
         Config.set('kivy', 'window_icon', self.icon)
         log.setLevel(LOG_LEVELS["debug"])
         self.apis = load_apis()
-        self.api = self.apis.get("ElevenLabsAPI", None)
-        example_api = self.apis.get("ExampleAPI", None)
+        self.api_elevenlabs = self.apis.get("ElevenLabsAPI", None)
+        self.api_openai = self.apis.get("OpenAIAPI", None)
+        self.api_amazonpolly = self.apis.get("AmazonPollyAPI", None)
+        self.api_msazure = self.apis.get("MSAzureAPI", None)
         self.sm.add_widget(MainScreen(title="Speech Jokey", name="main"))
         self.settings = Settings(title="Settings", name="settings")
         self.sm.add_widget(self.settings)
-        self.settings.setup_apis([self.api, example_api])
+        self.settings.setup_apis([self.api_elevenlabs, self.api_openai, self.api_amazonpolly, self.api_msazure])
         self.sm.add_widget(About(title="About", name="about"))
         return self.sm
+
 
 if __name__ == '__main__':
     if hasattr(sys, '_MEIPASS'):

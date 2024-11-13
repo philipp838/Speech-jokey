@@ -23,6 +23,13 @@ kivymd = {url = "https://github.com/kivymd/KivyMD/archive/5fb6654a83ffa1a20bd9c6
 python-dotenv = "^1.0.1"
 soundfile = "*"
 sounddevice = "*"
+pymupdf = "^1.24.11"
+docx2txt = "^0.8"
+python-docx = "^1.1.2"
+azure-cognitiveservices-speech = "^1.41.1"
+openai = "^1.52.2"
+boto3 = "^1.35.54"
+pygame = "^2.6.1"
 
 [build-system]
 requires = ["poetry-core"]
