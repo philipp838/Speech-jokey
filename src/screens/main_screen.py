@@ -97,8 +97,8 @@ class MainScreen(MDScreen):
         app = App.get_running_app()
         if hasattr(app, 'api_elevenlabs'):
             app.api_elevenlabs.settings.bind(voice_text=self.update_current_voice)
-        #if hasattr(app, 'api_openai'):
-            #app.api_openai.settings.bind(voice_text=self.update_current_voice)
+        if hasattr(app, 'api_openai'):
+            app.api_openai.settings.bind(voice_text=self.update_current_voice)
         #if hasattr(app, 'api_amazonpolly'):
             #app.api_amazonpolly.settings.bind(voice_text=self.update_current_voice)
         #if hasattr(app, 'api_msazure'):
