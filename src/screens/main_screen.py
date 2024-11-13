@@ -73,7 +73,6 @@ class MainScreen(MDScreen):
         "Exit": None  # NOTE Exit just closes the app and doesn't have an associated screen
     }
     ssml_tags = {
-        "🗣️": ("<speak>", "</speak>"),
         "⏸️": ('<break time="2s"/>', ""),
         "😐": ("<emphasis level=\"reduced\">", "</emphasis>"),
         "🙂": ("<emphasis level=\"moderate\">", "</emphasis>"),
@@ -121,20 +120,11 @@ class MainScreen(MDScreen):
         self.load_current_voice()
         app.api_elevenlabs.settings.bind(voice_text=self.update_current_voice)
 
-    def check_for_ssml_content(self):
-        """
-        Check if the text contains any SSML-related emojis and set text_type accordingly.
-        """
-        input_text = self.ids.text_main.text
-        ssml_emojis = self.ssml_tags.keys()
-
-        # If any emoji in ssml_emojis is found in the input text, set text_type to "ssml"
-        if any(emoji in input_text for emoji in ssml_emojis):
-            self.text_type = "ssml"
-        else:
-            self.text_type = "text"
-
     def amazon_emoji_to_ssml_tag(self, text):
+        """
+        Convert emojis in the text to Polly-compatible SSML tags.
+        """
+        ssml_text = "<speak>"
         for emoji, tags in self.ssml_tags.items():
             open_tag, close_tag = tags
             if close_tag:  # For emojis with both open and close tags
@@ -142,8 +132,9 @@ class MainScreen(MDScreen):
                 text = text.replace(emoji, close_tag, 1)  # Next occurrence as close tag
             else:  # For self-closing tags
                 text = text.replace(emoji, open_tag)
+        ssml_text += text + "</speak>"
 
-        return text
+        return ssml_text
 
     def msazure_emoji_to_ssml_tag(self, text):
         """
@@ -537,8 +528,6 @@ class MainScreen(MDScreen):
 
         if api:
             try:
-                # Check for SSML emojis and set text_type
-                self.check_for_ssml_content()
                 processed_text = self.amazon_emoji_to_ssml_tag(self.ids.text_main.text)
 
                 # Pass text_type to the Amazon Polly API for synthesis
