@@ -592,7 +592,7 @@ class MainScreen(MDScreen):
         elif current_engine == "Amazon Polly":
             audio_dir = os.path.join(tmp_dir, 'amazon_polly_output.mp3')
         elif current_engine == "Microsoft Azure":
-            audio_dir = os.path.join(tmp_dir, 'msazure_output.mp3')
+            audio_dir = os.path.join(tmp_dir, 'azure_output.wav')
         else:
             log.error("No valid TTS engine selected.")
 
