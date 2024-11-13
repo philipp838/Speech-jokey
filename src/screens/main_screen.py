@@ -101,8 +101,8 @@ class MainScreen(MDScreen):
             #app.api_openai.settings.bind(voice_text=self.update_current_voice)
         #if hasattr(app, 'api_amazonpolly'):
             #app.api_amazonpolly.settings.bind(voice_text=self.update_current_voice)
-        #if hasattr(app, 'api_msazure'):
-            #app.api_msazure.settings.bind(voice_text=self.update_current_voice)
+        if hasattr(app, 'api_msazure'):
+            app.api_msazure.settings.bind(voice_text=self.update_current_voice)
 
         # FIXME This is used to keep track of the file manager state (open or closed) but is not currently used
         self.manager_open = False
