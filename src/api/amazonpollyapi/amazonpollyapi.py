@@ -168,11 +168,11 @@ class AmazonPollyAPI(BaseApi):
         else:
             log.error("Voice not found for display name: %s", display_name)
 
-    def synthesize(self, input_text: str, out_filename: str, text_type="text"):
+    def synthesize(self, input_text: str, out_filename: str):
         try:
             response = self.polly_client.synthesize_speech(
                 Text=input_text,
-                TextType=text_type,
+                TextType="ssml",
                 OutputFormat="mp3",
                 VoiceId=self.settings.voice_text
             )

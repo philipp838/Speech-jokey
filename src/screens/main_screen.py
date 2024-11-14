@@ -531,7 +531,7 @@ class MainScreen(MDScreen):
                 processed_text = self.amazon_emoji_to_ssml_tag(self.ids.text_main.text)
 
                 # Pass text_type to the Amazon Polly API for synthesis
-                api.synthesize(processed_text, file_path, text_type=self.text_type)
+                api.synthesize(processed_text, file_path)
             except Exception as e:
                 msg = "Error during synthesis"
                 log.error("%s: %s: %s", self.__class__.__name__, msg, e)
