@@ -1,5 +1,3 @@
-import os
-from pathlib import Path
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 import logging as log
@@ -167,6 +165,38 @@ class AmazonPollyAPI(BaseApi):
             self.settings.save_settings()
         else:
             log.error("Voice not found for display name: %s", display_name)
+
+    def emoji_to_ssml_tag(self, text: str, ssml_tags: dict):
+        """
+        Convert emojis in the text to Polly-compatible SSML tags.
+        """
+        ssml_text = "<speak>"
+        for emoji, tags in ssml_tags.items():
+            open_tag, close_tag = tags
+            if close_tag:  # For emojis with both open and close tags
+                text = text.replace(emoji, open_tag, 1)  # First occurrence as open tag
+                text = text.replace(emoji, close_tag, 1)  # Next occurrence as close tag
+            else:  # For self-closing tags
+                text = text.replace(emoji, open_tag)
+        ssml_text += text + "</speak>"
+
+        return ssml_text
+
+    def on_synthesize(self, input_text: str, file_path: str, ssml_tags: dict):
+        """
+        Perform synthesis with Amazon Polly, handling emojis and SSML conversion.
+        """
+        try:
+            # Convert text to SSML
+            processed_text = self.emoji_to_ssml_tag(input_text, ssml_tags)
+
+            # Perform synthesis
+            self.synthesize(processed_text, file_path)
+
+            log.info("Amazon Polly synthesis completed successfully.")
+        except Exception as e:
+            log.error("Error during Amazon Polly synthesis: %s", e)
+            raise
 
     def synthesize(self, input_text: str, out_filename: str):
         try:
