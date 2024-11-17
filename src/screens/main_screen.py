@@ -73,7 +73,6 @@ class MainScreen(MDScreen):
         "Exit": None  # NOTE Exit just closes the app and doesn't have an associated screen
     }
     ssml_tags = {
-        "🗣️": ("<speak>", "</speak>"),
         "⏸️": ('<break time="2s"/>', ""),
         "😐": ("<emphasis level=\"reduced\">", "</emphasis>"),
         "🙂": ("<emphasis level=\"moderate\">", "</emphasis>"),
@@ -120,53 +119,6 @@ class MainScreen(MDScreen):
         Clock.schedule_once(self.set_focus, 0.1)
         self.load_current_voice()
         app.api_elevenlabs.settings.bind(voice_text=self.update_current_voice)
-
-    def check_for_ssml_content(self):
-        """
-        Check if the text contains any SSML-related emojis and set text_type accordingly.
-        """
-        input_text = self.ids.text_main.text
-        ssml_emojis = self.ssml_tags.keys()
-
-        # If any emoji in ssml_emojis is found in the input text, set text_type to "ssml"
-        if any(emoji in input_text for emoji in ssml_emojis):
-            self.text_type = "ssml"
-        else:
-            self.text_type = "text"
-
-    def amazon_emoji_to_ssml_tag(self, text):
-        for emoji, tags in self.ssml_tags.items():
-            open_tag, close_tag = tags
-            if close_tag:  # For emojis with both open and close tags
-                text = text.replace(emoji, open_tag, 1)  # First occurrence as open tag
-                text = text.replace(emoji, close_tag, 1)  # Next occurrence as close tag
-            else:  # For self-closing tags
-                text = text.replace(emoji, open_tag)
-
-        return text
-
-    def msazure_emoji_to_ssml_tag(self, text):
-        """
-        Convert emojis in the text to Azure-compatible SSML tags.
-        """
-        app = App.get_running_app()
-        api = app.api_msazure
-        voice = api.settings.voice_text
-
-        app.api_msazure.set_language()
-        lang = api.settings.lang_text
-
-        ssml_text = f"<speak version='1.0' xml:lang='{lang}'><voice name='{voice}'>"
-        for emoji, tags in self.ssml_tags.items():
-            open_tag, close_tag = tags
-            if close_tag:  # For emojis with both open and close tags
-                text = text.replace(emoji, open_tag, 1)  # Replace first occurrence with open tag
-                text = text.replace(emoji, close_tag, 1)  # Replace next occurrence with close tag
-            else:  # For self-closing tags
-                text = text.replace(emoji, open_tag)
-        ssml_text += text + "</voice></speak>"
-
-        return ssml_text
 
     def on_ssml_button_click(self):
         try:
@@ -476,18 +428,62 @@ class MainScreen(MDScreen):
 
     def on_synthesize(self):
         current_engine = self.get_current_tts_engine()
+        tmp_dir = App.get_running_app().global_settings.get_tmp_dir()
 
         # Check the selected engine and call the respective synthesis method
         if current_engine == "ElevenLabs":
             self.on_synthesize_elevenlabs()
+
         elif current_engine == "OpenAI":
-            self.on_synthesize_openai()
+            api = App.get_running_app().api_openai
+            file_path = os.path.join(tmp_dir, 'openai_output.mp3')
+            log.info(f"Using file_path={file_path}")
+
+            if api:
+                try:
+                    api.synthesize(self.ids.text_main.text, file_path)
+                except Exception as e:
+                    msg = "Error during synthesis"
+                    log.error("%s: %s: %s", self.__class__.__name__, msg, e)
+                    self.ids.label_status.text = msg
+            else:
+                self.ids.label_status.text = "OpenAI API not available."
+
         elif current_engine == "Amazon Polly":
-            self.on_synthesize_amazonpolly()
+            api = App.get_running_app().api_amazonpolly
+            file_path = os.path.join(tmp_dir, 'amazon_polly_output.mp3')
+            log.info(f"Using file_path={file_path}")
+
+            if api:
+                try:
+                    api.on_synthesize(self.ids.text_main.text, file_path, self.ssml_tags)
+                except Exception as e:
+                    msg = "Error during synthesis"
+                    log.error("%s: %s: %s", self.__class__.__name__, msg, e)
+                    self.ids.label_status.text = msg
+            else:
+                self.ids.label_status.text = "Amazon Polly API not available."
+
         elif current_engine == "Microsoft Azure":
-            self.on_synthesize_msazure()
+            api = App.get_running_app().api_msazure
+            file_path = os.path.join(tmp_dir, 'azure_output.wav')
+            log.info(f"Using file_path={file_path}")
+
+            if api:
+                try:
+                    api.on_synthesize(self.ids.text_main.text, file_path, self.ssml_tags)
+                except Exception as e:
+                    msg = "Error during synthesis"
+                    log.error("%s: %s: %s", self.__class__.__name__, msg, e)
+                    self.ids.label_status.text = msg
+            else:
+                self.ids.label_status.text = "MS Azure API not available."
         else:
             log.error("No valid TTS engine selected.")
+
+        popup_window = CustomPopup(content_text="Text synthesized to an audio file.",
+                                   size_hint=(None, None), size=(400, 400))
+        popup_window.open()
 
     def on_synthesize_elevenlabs(self):
         # TODO Implement text to speech synthesis (this is mostly a placeholder without a backend implementation yet)
@@ -509,62 +505,6 @@ class MainScreen(MDScreen):
                 log.error("%s: %s: %s", self.__class__.__name__, msg, e)
                 self.ids.label_status.text = msg
         popup_window = CustomPopup(content_text=f"Text has been synthesized\nto an audio file",
-                                   size_hint=(None, None), size=(400, 400))
-        popup_window.open()
-
-    def on_synthesize_openai(self):
-        api = App.get_running_app().api_openai
-        tmp_dir = App.get_running_app().global_settings.get_tmp_dir()
-        file_path = os.path.join(tmp_dir, 'openai_output.mp3')
-        log.info(f"Using file_path={file_path}")
-
-        if api:
-            try:
-                api.synthesize(self.ids.text_main.text, file_path)
-            except Exception as e:
-                msg = "Error during synthesis"
-                log.error("%s: %s: %s", self.__class__.__name__, msg, e)
-                self.ids.label_status.text = msg
-        popup_window = CustomPopup(content_text="Text synthesized to an audio file.",
-                                   size_hint=(None, None), size=(400, 400))
-        popup_window.open()
-
-    def on_synthesize_amazonpolly(self):
-        api = App.get_running_app().api_amazonpolly
-        tmp_dir = App.get_running_app().global_settings.get_tmp_dir()
-        file_path = os.path.join(tmp_dir, 'amazon_polly_output.mp3')
-        log.info(f"Using file_path={file_path}")
-
-        if api:
-            try:
-                # Check for SSML emojis and set text_type
-                self.check_for_ssml_content()
-                processed_text = self.amazon_emoji_to_ssml_tag(self.ids.text_main.text)
-
-                # Pass text_type to the Amazon Polly API for synthesis
-                api.synthesize(processed_text, file_path, text_type=self.text_type)
-            except Exception as e:
-                msg = "Error during synthesis"
-                log.error("%s: %s: %s", self.__class__.__name__, msg, e)
-                self.ids.label_status.text = msg
-        popup_window = CustomPopup(content_text="Text synthesized to an audio file.",
-                                   size_hint=(None, None), size=(400, 400))
-        popup_window.open()
-
-    def on_synthesize_msazure(self):
-        api = App.get_running_app().api_msazure
-        tmp_dir = App.get_running_app().global_settings.get_tmp_dir()
-        file_path = os.path.join(tmp_dir, 'azure_output.wav')
-        log.info(f"Using file_path={file_path}")
-
-        if api:
-            try:
-                api.synthesize(self.ids.text_main.text, file_path, ssml_conversion_func=self.msazure_emoji_to_ssml_tag)
-            except Exception as e:
-                msg = "Error during synthesis"
-                log.error("%s: %s: %s", self.__class__.__name__, msg, e)
-                self.ids.label_status.text = msg
-        popup_window = CustomPopup(content_text="Text synthesized to an audio file.",
                                    size_hint=(None, None), size=(400, 400))
         popup_window.open()
 

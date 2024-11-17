@@ -53,6 +53,7 @@ class MSAzureAPISettings(BaseApiSettings):
     voice_text = StringProperty("Ingrid (de-AT)")
     region_text = StringProperty("")
     model_text = StringProperty("standard")
+    lang_text = StringProperty("")
 
     @classmethod
     def isSupported(cls):
@@ -92,6 +93,8 @@ class MSAzureAPISettings(BaseApiSettings):
             self.api_name, "model", default="standard")
         self.region_text = app_instance.global_settings.get_setting(
             self.api_name, "region", default="")
+        self.lang_text = app_instance.global_settings.get_setting(
+            self.api_name, "language", default="")
 
     def save_settings(self):
         app_instance = App.get_running_app()
@@ -103,6 +106,8 @@ class MSAzureAPISettings(BaseApiSettings):
             self.api_name, "model", self.model_text)
         app_instance.global_settings.update_setting(
             self.api_name, "region", self.region_text)
+        app_instance.global_settings.update_setting(
+            self.api_name, "language", self.lang_text)
 
     def update_settings(self, instance, value):
         self.api_key_text = self.widget.api_key_input.text
@@ -157,27 +162,51 @@ class MSAzureAPI(BaseApi):
         else:
             log.error("Language not found for voice: %s", selected_voice)
 
-    # text_type="text"
-    def synthesize(self, input_text: str, out_filename: str, ssml_conversion_func=None):
+    def emoji_to_ssml_tag(self, text: str, ssml_tags: dict):
+        """
+        Convert emojis in the text to Azure-compatible SSML tags.
+        """
+        voice = self.settings.voice_text
+        self.set_language()
+        lang = self.settings.lang_text
+
+        ssml_text = f"<speak version='1.0' xml:lang='{lang}'><voice name='{voice}'>"
+        for emoji, tags in ssml_tags.items():
+            open_tag, close_tag = tags
+            if close_tag:  # For emojis with both open and close tags
+                text = text.replace(emoji, open_tag, 1)  # Replace first occurrence with open tag
+                text = text.replace(emoji, close_tag, 1)  # Replace next occurrence with close tag
+            else:  # For self-closing tags
+                text = text.replace(emoji, open_tag)
+        ssml_text += text + "</voice></speak>"
+
+        return ssml_text
+
+    def on_synthesize(self, input_text: str, file_path: str, ssml_tags: dict):
+        try:
+            processed_text = self.emoji_to_ssml_tag(input_text, ssml_tags)
+            self.synthesize(processed_text, file_path)
+        except Exception as e:
+            log.error("Error during MS Azure synthesis: %s", e)
+            raise
+
+    def synthesize(self, input_text: str, file_path: str):
         self.speech_config = speechsdk.SpeechConfig(
             subscription=self.settings.api_key_text,
             region=self.settings.region_text
         )
         self.speech_config.speech_synthesis_voice_name = self.settings.voice_text
 
-        # Use the passed function for SSML conversion if available
-        ssml_text = ssml_conversion_func(input_text) if ssml_conversion_func else input_text
-
         # Synthesize the speech
         synthesizer = speechsdk.SpeechSynthesizer(speech_config=self.speech_config, audio_config=None)
-        result = synthesizer.speak_ssml_async(ssml_text).get()
+        result = synthesizer.speak_ssml_async(input_text).get()
 
         # Check the result
         if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
             # Save the audio data to a file
             stream = speechsdk.AudioDataStream(result)
-            stream.save_to_wav_file(out_filename)
-            log.info(f"Audio successfully saved to {out_filename}")
+            stream.save_to_wav_file(file_path)
+            log.info(f"Audio successfully saved to {file_path}")
         elif result.reason == speechsdk.ResultReason.Canceled:
             cancellation_details = result.cancellation_details
             print("Speech synthesis canceled: {}".format(cancellation_details.reason))
@@ -185,4 +214,3 @@ class MSAzureAPI(BaseApi):
                 if cancellation_details.error_details:
                     print("Error details: {}".format(cancellation_details.error_details))
                     print("Did you set the speech resource key and region values?")
-
