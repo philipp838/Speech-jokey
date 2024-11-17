@@ -134,9 +134,6 @@ class OpenAIAPI(BaseApi):
             # Initialize the OpenAI client with the API key
             client = OpenAI(api_key=self.settings.api_key_text)
 
-            # Define the file path for saving the output
-            file_path = Path(out_filename)
-
             # Make the API request for audio synthesis
             response = client.audio.speech.create(
                 model=self.settings.model_text,
@@ -145,12 +142,11 @@ class OpenAIAPI(BaseApi):
             )
 
             # Write the audio content to the specified file
-            with open(file_path, "wb") as f:
+            with open(out_filename, "wb") as f:
                 f.write(response.content)
 
-            log.info(f"Audio successfully saved to {file_path}")
+            log.info(f"Audio successfully saved to {out_filename}")
 
         except Exception as e:
             log.error(f"Error during synthesis: {e}")
             raise
-
