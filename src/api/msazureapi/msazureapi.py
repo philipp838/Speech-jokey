@@ -142,11 +142,17 @@ class MSAzureAPI(BaseApi):
     def get_available_voices(self):
         return [voice["display_name"] for voice in self._voices]
 
-    def set_voice(self, display_name):
+    def set_voice_and_language(self, display_name):
         # Map the display name to the internal name and save it
         internal_name = self._voice_mapping.get(display_name)
         if internal_name:
             self.settings.voice_text = internal_name
+            voice_info = next((voice for voice in self._voices if voice["internal_name"] == self.settings.voice_text), None)
+            if voice_info:
+                self.settings.lang_text = voice_info["language"]
+                self.settings.save_settings()
+            else:
+                log.error("Language not found for voice: %s", self.settings.voice_text)
             self.settings.save_settings()
         else:
             log.error("Voice not found for display name: %s", display_name)

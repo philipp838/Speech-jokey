@@ -420,7 +420,7 @@ class MainScreen(MDScreen):
         elif current_engine == "Amazon Polly":
             app.api_amazonpolly.set_voice(voice_name)
         elif current_engine == "Microsoft Azure":
-            app.api_msazure.set_voice(voice_name)
+            app.api_msazure.set_voice_and_language(voice_name)
 
         # Update displayed selected voice
         self.selected_voice = voice_name
