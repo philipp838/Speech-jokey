@@ -470,7 +470,22 @@ class MainScreen(MDScreen):
 
         # Check the selected engine and call the respective synthesis method
         if current_engine == "ElevenLabs":
-            self.on_synthesize_elevenlabs()
+            api = App.get_running_app().api_elevenlabs
+            file_path = os.path.join(tmp_dir, 'output_file.wav')
+            log.info(f"Using file_path={file_path}")
+
+            if api:
+                try:
+                    # FIXME: Use constant or configurable output path
+                    api.synthesize(self.ids.text_main.text, file_path)
+                except NotImplementedError:
+                    msg = "Text to speech synthesis not implemented for this API."
+                    log.error("%s: %s", self.__class__.__name__, msg)
+                    self.ids.label_status.text = msg
+                except Exception as e:
+                    msg = "Error during synthesis"
+                    log.error("%s: %s: %s", self.__class__.__name__, msg, e)
+                    self.ids.label_status.text = msg
         elif current_engine == "OpenAI":
             self.on_synthesize_openai()
         elif current_engine == "Amazon Polly":
@@ -480,26 +495,7 @@ class MainScreen(MDScreen):
         else:
             log.error("No valid TTS engine selected.")
 
-    def on_synthesize_elevenlabs(self):
-        # TODO Implement text to speech synthesis (this is mostly a placeholder without a backend implementation yet)
-        api = App.get_running_app().api_elevenlabs
-        tmp_dir = App.get_running_app().global_settings.get_tmp_dir()
-        file_path = os.path.join(tmp_dir, 'output_file.wav')
-        log.info(f"Using file_path={file_path}")
-
-        if api:
-            try:
-                # FIXME: Use constant or configurable output path
-                api.synthesize(self.ids.text_main.text, file_path)
-            except NotImplementedError:
-                msg = "Text to speech synthesis not implemented for this API."
-                log.error("%s: %s", self.__class__.__name__, msg)
-                self.ids.label_status.text = msg
-            except Exception as e:
-                msg = "Error during synthesis"
-                log.error("%s: %s: %s", self.__class__.__name__, msg, e)
-                self.ids.label_status.text = msg
-        popup_window = CustomPopup(content_text=f"Text has been synthesized\nto an audio file",
+        popup_window = CustomPopup(content_text="Text synthesized to an audio file.",
                                    size_hint=(None, None), size=(400, 400))
         popup_window.open()
 
