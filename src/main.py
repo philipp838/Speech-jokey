@@ -62,10 +62,13 @@ class SpeechJokey(MDApp):
         self.api_openai = self.apis.get("OpenAIAPI", None)
         self.api_amazonpolly = self.apis.get("AmazonPollyAPI", None)
         self.api_msazure = self.apis.get("MSAzureAPI", None)
+        self.api_pyttsx3 = self.apis.get("Pyttsx3API", None)
+        self.api_gtts = self.apis.get("GttsAPI", None)
         self.sm.add_widget(MainScreen(title="Speech Jokey", name="main"))
         self.settings = Settings(title="Settings", name="settings")
         self.sm.add_widget(self.settings)
-        self.settings.setup_apis([self.api_elevenlabs, self.api_openai, self.api_amazonpolly, self.api_msazure])
+        self.settings.setup_apis([self.api_elevenlabs, self.api_openai, self.api_amazonpolly,
+                                  self.api_msazure, self.api_pyttsx3, self.api_gtts])
         self.sm.add_widget(About(title="About", name="about"))
         return self.sm
 

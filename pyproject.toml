@@ -30,6 +30,7 @@ azure-cognitiveservices-speech = "^1.41.1"
 openai = "^1.52.2"
 boto3 = "^1.35.54"
 pygame = "^2.6.1"
+gtts = "^2.5.4"
 
 [build-system]
 requires = ["poetry-core"]
