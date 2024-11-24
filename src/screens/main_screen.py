@@ -96,10 +96,6 @@ class MainScreen(MDScreen):
         app = App.get_running_app()
         if hasattr(app, 'api_elevenlabs'):
             app.api_elevenlabs.settings.bind(voice_text=self.update_current_voice)
-        #if hasattr(app, 'api_openai'):
-            #app.api_openai.settings.bind(voice_text=self.update_current_voice)
-        #if hasattr(app, 'api_amazonpolly'):
-            #app.api_amazonpolly.settings.bind(voice_text=self.update_current_voice)
         if hasattr(app, 'api_msazure'):
             app.api_msazure.settings.bind(voice_text=self.update_current_voice)
 
@@ -135,10 +131,6 @@ class MainScreen(MDScreen):
         # Retrieve the default voice for the selected engine from global settings
         if current_engine == "ElevenLabs":
             self.selected_voice = app_instance.global_settings.get_setting("ElevenLabsAPI", "voice", default="Serena")
-        elif current_engine == "OpenAI":
-            self.selected_voice = app_instance.global_settings.get_setting("OpenAIAPI", "voice", default="Echo")
-        elif current_engine == "Amazon Polly":
-            self.selected_voice = app_instance.global_settings.get_setting("AmazonPollyAPI", "voice", default="Vicki")
         elif current_engine == "Microsoft Azure":
             self.selected_voice = app_instance.global_settings.get_setting("MSAzureAPI", "voice", default="Ingrid (de-AT)")
         else:
@@ -315,8 +307,6 @@ class MainScreen(MDScreen):
         app = App.get_running_app()
         available_engines = {
             "ElevenLabs": app.api_elevenlabs,
-            "OpenAI": app.api_openai,
-            "Amazon Polly": app.api_amazonpolly,
             "Microsoft Azure": app.api_msazure
         }
 
@@ -346,10 +336,6 @@ class MainScreen(MDScreen):
         # Retrieve the current voice for the selected engine
         if engine_name == "ElevenLabs":
             self.selected_voice = app.api_elevenlabs.settings.voice_text
-        elif engine_name == "OpenAI":
-            self.selected_voice = app.api_openai.settings.voice_text
-        elif engine_name == "Amazon Polly":
-            self.selected_voice = app.api_amazonpolly.settings.voice_text
         elif engine_name == "Microsoft Azure":
             self.selected_voice = app.api_msazure.settings.voice_text
         else:
@@ -374,10 +360,6 @@ class MainScreen(MDScreen):
         # Determine which API to use based on the current engine
         if current_engine == "ElevenLabs":
             api = app.api_elevenlabs
-        elif current_engine == "OpenAI":
-            api = app.api_openai
-        elif current_engine == "Amazon Polly":
-            api = app.api_amazonpolly
         elif current_engine == "Microsoft Azure":
             api = app.api_msazure
         else:
@@ -415,10 +397,6 @@ class MainScreen(MDScreen):
         # Update the selected voice in the appropriate API's settings
         if current_engine == "ElevenLabs":
             app.api_elevenlabs.set_voice(voice_name)
-        elif current_engine == "OpenAI":
-            app.api_openai.set_voice(voice_name)
-        elif current_engine == "Amazon Polly":
-            app.api_amazonpolly.set_voice(voice_name)
         elif current_engine == "Microsoft Azure":
             app.api_msazure.set_voice_and_language(voice_name)
 
@@ -433,37 +411,6 @@ class MainScreen(MDScreen):
         # Check the selected engine and call the respective synthesis method
         if current_engine == "ElevenLabs":
             self.on_synthesize_elevenlabs()
-
-        elif current_engine == "OpenAI":
-            api = App.get_running_app().api_openai
-            file_path = os.path.join(tmp_dir, 'openai_output.mp3')
-            log.info(f"Using file_path={file_path}")
-
-            if api:
-                try:
-                    api.synthesize(self.ids.text_main.text, file_path)
-                except Exception as e:
-                    msg = "Error during synthesis"
-                    log.error("%s: %s: %s", self.__class__.__name__, msg, e)
-                    self.ids.label_status.text = msg
-            else:
-                self.ids.label_status.text = "OpenAI API not available."
-
-        elif current_engine == "Amazon Polly":
-            api = App.get_running_app().api_amazonpolly
-            file_path = os.path.join(tmp_dir, 'amazon_polly_output.mp3')
-            log.info(f"Using file_path={file_path}")
-
-            if api:
-                try:
-                    api.on_synthesize(self.ids.text_main.text, file_path, self.ssml_tags)
-                except Exception as e:
-                    msg = "Error during synthesis"
-                    log.error("%s: %s: %s", self.__class__.__name__, msg, e)
-                    self.ids.label_status.text = msg
-            else:
-                self.ids.label_status.text = "Amazon Polly API not available."
-
         elif current_engine == "Microsoft Azure":
             api = App.get_running_app().api_msazure
             file_path = os.path.join(tmp_dir, 'azure_output.wav')
@@ -527,10 +474,6 @@ class MainScreen(MDScreen):
         # Check the selected engine and call the respective play function
         if current_engine == "ElevenLabs":
             audio_dir = os.path.join(tmp_dir, 'elevenlab_output.wav')
-        elif current_engine == "OpenAI":
-            audio_dir = os.path.join(tmp_dir, 'openai_output.mp3')
-        elif current_engine == "Amazon Polly":
-            audio_dir = os.path.join(tmp_dir, 'amazon_polly_output.mp3')
         elif current_engine == "Microsoft Azure":
             audio_dir = os.path.join(tmp_dir, 'azure_output.wav')
         else:
