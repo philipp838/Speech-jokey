@@ -97,15 +97,9 @@ class Pyttsx3API(BaseApi):
             engine = pyttsx3.init()
             available_voices = engine.getProperty('voices')
             for voice in available_voices:
-                name_match = re.search(r"TTS_MS_[A-Z]{2}-[A-Z]{2}_(\w+)_", voice.id)
-                lang_match = re.search(r"TTS_MS_([A-Z]{2}-[A-Z]{2})_", voice.id)
-                name = name_match.group(1) if name_match else "Unknown"
-                lang = lang_match.group(1) if lang_match else "Unknown"
-
                 cls.voices.append({
-                    "display_name": f"{name} ({lang})",
+                    "display_name": voice.name,
                     "internal_name": voice.id,
-                    "language": lang
                 })
 
     def __init__(self, settings: Pyttsx3APISettings):
@@ -121,7 +115,6 @@ class Pyttsx3API(BaseApi):
         matching_voice = next((v for v in self.voices if v["display_name"] == display_name), None)
         if matching_voice:
             self.settings.voice_text = matching_voice["internal_name"]
-            self.settings.lang_text = matching_voice["language"]
             self.settings.save_settings()
         else:
             log.error("Voice not found: %s", display_name)
