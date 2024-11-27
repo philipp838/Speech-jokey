@@ -1,4 +1,3 @@
-from pathlib import Path
 import openai
 from openai import OpenAI
 import logging as log
@@ -16,13 +15,15 @@ class OpenAIAPIWidget(MDScreen):
     api_key_input = ObjectProperty(None)  # Field for the API key input
     voice_selection = ObjectProperty(None)  # Dropdown for selecting voices
     model_selection = ObjectProperty(None)  # Dropdown for selecting models
-    voice_names = ListProperty(["alloy", "echo", "fable", "onyx", "nova", "shimmer"])
-    model_names = ListProperty(["tts-1", "tts-1-hd"])
+    voice_names = ListProperty()
+    model_names = ListProperty()
 
     def __init__(self, title: str = "OpenAI API Settings", **kwargs):
         super(OpenAIAPIWidget, self).__init__(**kwargs)
         self.title = title
         self.name = OpenAIAPI.__name__.lower() + "_settings"
+        self.voice_names = [voice for voice in OpenAIAPI.voices]
+        self.model_names = [model for model in OpenAIAPI.models]
 
     def on_leave(self, *args):
         log.info("Leaving OpenAI settings screen.")
@@ -102,8 +103,8 @@ class OpenAIAPISettings(BaseApiSettings):
 
 
 class OpenAIAPI(BaseApi):
-    _models = ["tts-1", "tts-1-hd"]
-    _voices = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
+    models = ["tts-1", "tts-1-hd"]
+    voices = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
 
     def __init__(self, settings: OpenAIAPISettings):
         super(OpenAIAPI, self).__init__(settings)
@@ -115,7 +116,7 @@ class OpenAIAPI(BaseApi):
         openai.api_key = self.settings.api_key_text
 
     def get_available_voices(self):
-        return self._voices
+        return self.voices
 
     def set_voice(self, voice_name):
         self.settings.voice_text = voice_name
@@ -123,7 +124,7 @@ class OpenAIAPI(BaseApi):
         self.init_api()
 
     def get_models(self):
-        return self._models
+        return self.models
 
     def synthesize(self, input_text: str, out_filename: str):
         self.init_api()  # Ensure API key is loaded
