@@ -18,6 +18,8 @@ import sys
 # Custom
 from modules.dialog.exitdialog import ExitDialog
 
+from api.api_factory import api_factory
+
 
 class MainScreen(MDScreen):
     title = StringProperty()
@@ -58,7 +60,7 @@ class MainScreen(MDScreen):
         self.old_cursor_index = self.ids.text_main.cursor_index()
         Clock.schedule_once(self.set_focus, 0.1)
         self.load_current_voice()
-        App.get_running_app().api.settings.bind(voice_text=self.update_current_voice)
+        api_factory.get_active_api().settings.bind(voice_text=self.update_current_voice)
 
     def load_current_voice(self): 
         app_instance = App.get_running_app()
@@ -163,7 +165,7 @@ class MainScreen(MDScreen):
             log.info("%s: Saved file: %s", self.__class__.__name__, file)
 
     def on_select_voice(self):
-        api = App.get_running_app().api
+        api = api_factory.get_active_api()
 
         if api:
             voice_names = api.get_available_voice_names()
@@ -192,7 +194,7 @@ class MainScreen(MDScreen):
     def select_voice(self, voice_name):
         # process selected voice names
         log.info("%s: Selected voice: %s", self.__class__.__name__, voice_name)
-        api = App.get_running_app().api
+        api = api_factory.get_active_api()
         api.set_voice_name(voice_name)
 
         popup_window = CustomPopup(content_text=f"You selected the voice: \n{voice_name}",
@@ -202,7 +204,7 @@ class MainScreen(MDScreen):
 
     def on_play(self):
         # TODO Implement audio playback (this is mostly a placeholder without a backend implementation yet)
-        api = App.get_running_app().api
+        api = api_factory.get_active_api()
         if api:
             try:
                 api.play()
@@ -215,7 +217,7 @@ class MainScreen(MDScreen):
 
     def on_synthesize(self):
         # TODO Implement text to speech synthesis (this is mostly a placeholder without a backend implementation yet)
-        api = App.get_running_app().api
+        api = api_factory.get_active_api()
         tmp_dir = App.get_running_app().global_settings.get_tmp_dir()
         synthesized_file = os.path.join(tmp_dir, 'output_file.wav')
         log.info(f"Using synthesized_file={synthesized_file}")
