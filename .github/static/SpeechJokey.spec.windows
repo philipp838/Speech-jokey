@@ -11,7 +11,7 @@ block_cipher = None
 path = os.path.abspath(".")
 
 a = Analysis(
-    ['src/main.py'],
+    ['src\\main.py'],
     pathex=[path],
     binaries=[],
     datas=[],
@@ -47,7 +47,7 @@ exe = EXE(
 )
 coll = COLLECT(
     exe,
-    Tree('src/'),
+    Tree('src\\'),
     a.scripts,
     a.binaries,
     a.zipfiles,
