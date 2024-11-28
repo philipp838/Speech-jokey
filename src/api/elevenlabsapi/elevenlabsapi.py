@@ -53,8 +53,8 @@ class ElevenLabsAPIWidget(MDScreen):
             self.settings.save_settings()
             api_name = "ElevenLabsAPI"
             app_instance = App.get_running_app()
-            app_instance.apis.get(api_name, None).reset_api()
-            app_instance.apis.get(api_name, None).init_api()
+            app_instance.api_factory.get_api(api_name).reset_api()
+            app_instance.api_factory.get_api(api_name).init_api()
             log.info("API key valid.")
         except:
             log.error("API key invalid.")
@@ -141,7 +141,7 @@ class ElevenLabsAPISettings(BaseApiSettings):
         # if API key changed, reinit the API
         if not self.api_key_text == self.widget.api_key_input.text:
             self.api_key_text=self.widget.api_key_input.text
-            app_instance.apis.get(self.api_name, None).reset_api()
+            app_instance.api_factory.get_api(self.api_name).reset_api()
 
         self.model_text=self.widget.model_selection.text
         self.voice_text=self.widget.voice_selection.text
