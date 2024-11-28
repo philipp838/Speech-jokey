@@ -59,6 +59,8 @@ class SpeechJokey(MDApp):
         Config.set('kivy', 'window_icon', self.icon)
         log.setLevel(LOG_LEVELS["debug"])
 
+        # Store API factory object in global properties
+        self.api_factory = api_factory
         # Load all configured APIs
         api_factory.load_apis()
 
