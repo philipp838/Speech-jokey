@@ -1333,6 +1333,17 @@ files = [
 tests = ["pytest"]
 
 [[package]]
+name = "pvorca"
+version = "1.0.0"
+description = "Orca Streaming Text-to-Speech Engine"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "pvorca-1.0.0-py3-none-any.whl", hash = "sha256:9fd2668f15f2134d76c9a82e158e88172b2ca1b123481ee80cd58be16499b27b"},
+    {file = "pvorca-1.0.0.tar.gz", hash = "sha256:18efa8ee3b98c306acc5cd7804046e3b9fb55ea16cea9bdad1ff76604db76791"},
+]
+
+[[package]]
 name = "pycparser"
 version = "2.22"
 description = "C parser in Python"
@@ -2072,4 +2083,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "8c8a73627899e52961e190cc45d0b2665504c61a77181ca41e1e3a79dff65b8c"
+content-hash = "95feb21b4053e898d8918b70725a06c43183bdccda1ede33cdfb79d31a1618ca"
