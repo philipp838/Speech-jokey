@@ -94,10 +94,8 @@ class MainScreen(MDScreen):
 
         # Bind each TTS API's voice setting to automatically update the selected_voice on change
         app = App.get_running_app()
-        if hasattr(app, 'api_elevenlabs'):
-            app.api_elevenlabs.settings.bind(voice_text=self.update_current_voice)
-        if hasattr(app, 'api_orca'):
-            app.api_orca.settings.bind(voice_text=self.update_current_voice)
+        if hasattr(app, 'api_coqui'):
+            app.api_coqui.settings.bind(voice_text=self.update_current_voice)
 
         # FIXME This is used to keep track of the file manager state (open or closed) but is not currently used
         self.manager_open = False
@@ -128,10 +126,8 @@ class MainScreen(MDScreen):
         current_engine = self.get_current_tts_engine()
 
         # Retrieve the default voice for the selected engine from global settings
-        if current_engine == "ElevenLabs":
-            self.selected_voice = app_instance.global_settings.get_setting("ElevenLabsAPI", "voice", default="Serena")
-        elif current_engine == "Orca":
-            self.selected_voice = app_instance.global_settings.get_setting("OrcaAPI", "voice", default="")
+        if current_engine == "Coqui":
+            self.selected_voice = app_instance.global_settings.get_setting("CoquiAPI", "voice", default="")
         else:
             self.selected_voice = ""  # Fallback if no engine is set
 
@@ -305,8 +301,7 @@ class MainScreen(MDScreen):
     def on_select_tts_engine(self):
         app = App.get_running_app()
         available_engines = {
-            "ElevenLabs": app.api_elevenlabs,
-            "Orca": app.api_orca
+            "Coqui": app.api_coqui
         }
 
         # Prepare menu items for each available TTS engine
@@ -333,10 +328,8 @@ class MainScreen(MDScreen):
         self.ids.btn_select_engine.text = f"tts engine:\n{engine_name}"
 
         # Retrieve the current voice for the selected engine
-        if engine_name == "ElevenLabs":
-            self.selected_voice = app.api_elevenlabs.settings.voice_text
-        elif engine_name == "Orca":
-            self.selected_voice = app.api_orca.settings.voice_text
+        if engine_name == "Coqui":
+            self.selected_voice = app.api_coqui.settings.voice_text
         else:
             self.selected_voice = "N/A"
 
@@ -357,10 +350,8 @@ class MainScreen(MDScreen):
         current_engine = self.get_current_tts_engine()
 
         # Determine which API to use based on the current engine
-        if current_engine == "ElevenLabs":
-            api = app.api_elevenlabs
-        elif current_engine == "Orca":
-            api = app.api_orca
+        if current_engine == "Coqui":
+            api = app.api_coqui
         else:
             log.error("Unknown TTS engine selected.")
             return
@@ -394,10 +385,8 @@ class MainScreen(MDScreen):
         app = App.get_running_app()
 
         # Update the selected voice in the appropriate API's settings
-        if current_engine == "ElevenLabs":
-            app.api_elevenlabs.set_voice(voice_name)
-        elif current_engine == "Orca":
-            app.api_orca.set_voice(voice_name)
+        if current_engine == "Coqui":
+            app.api_coqui.set_voice(voice_name)
 
         # Update displayed selected voice
         self.selected_voice = voice_name
@@ -408,26 +397,9 @@ class MainScreen(MDScreen):
         tmp_dir = App.get_running_app().global_settings.get_tmp_dir()
 
         # Check the selected engine and call the respective synthesis method
-        if current_engine == "ElevenLabs":
-            api = App.get_running_app().api_elevenlabs
-            file_path = os.path.join(tmp_dir, 'output_file.wav')
-            log.info(f"Using file_path={file_path}")
-            if api:
-                try:
-                    # FIXME: Use constant or configurable output path
-                    api.synthesize(self.ids.text_main.text, file_path)
-                except NotImplementedError:
-                    msg = "Text to speech synthesis not implemented for this API."
-                    log.error("%s: %s", self.__class__.__name__, msg)
-                    self.ids.label_status.text = msg
-                except Exception as e:
-                    msg = "Error during synthesis"
-                    log.error("%s: %s: %s", self.__class__.__name__, msg, e)
-                    self.ids.label_status.text = msg
-
-        elif current_engine == "Orca":
-            api = App.get_running_app().api_orca
-            file_path = os.path.join(tmp_dir, 'orca_output.wav')
+        if current_engine == "Coqui":
+            api = App.get_running_app().api_coqui
+            file_path = os.path.join(tmp_dir, 'coqui_output.wav')
             if api:
                 try:
                     api.synthesize(self.ids.text_main.text, file_path)
@@ -436,7 +408,7 @@ class MainScreen(MDScreen):
                     log.error("%s: %s: %s", self.__class__.__name__, msg, e)
                     self.ids.label_status.text = msg
             else:
-                self.ids.label_status.text = "Orca not available."
+                self.ids.label_status.text = "Coqui not available."
 
         else:
             log.error("No valid TTS engine selected.")
@@ -462,10 +434,8 @@ class MainScreen(MDScreen):
         current_engine = self.get_current_tts_engine()
 
         # Check the selected engine and call the respective play function
-        if current_engine == "ElevenLabs":
-            audio_dir = os.path.join(tmp_dir, 'elevenlab_output.wav')
-        elif current_engine == "Orca":
-            audio_dir = os.path.join(tmp_dir, 'orca_output.wav')
+        if current_engine == "Coqui":
+            audio_dir = os.path.join(tmp_dir, 'coqui_output.wav')
         else:
             log.error("No valid TTS engine selected.")
 

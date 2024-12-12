@@ -1,4 +1,5 @@
-import pvorca
+import torch
+from TTS.api import TTS
 import logging as log
 from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown
@@ -7,25 +8,26 @@ from kivy.app import App
 from kivy.properties import StringProperty, ListProperty, ObjectProperty
 from ..base import BaseApi, BaseApiSettings
 
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
-class OrcaAPIWidget(MDScreen):
+
+class CoquiAPIWidget(MDScreen):
     settings = ObjectProperty(None)
-    title = StringProperty("Orca API Settings")
-    api_key_input = ObjectProperty(None)
-    region_input = ObjectProperty(None)
-    voice_selection = ObjectProperty(None)
-    model_selection = ObjectProperty(None)
+    title = StringProperty("Coqui API Settings")
+    api_key_input = ObjectProperty(None)  # Field for the API key input
+    voice_selection = ObjectProperty(None)  # Dropdown for selecting voices
+    model_selection = ObjectProperty(None)  # Dropdown for selecting models
     voice_names = ListProperty()
     model_names = ListProperty(["standard"])
 
-    def __init__(self, title: str = "Orca API Settings", **kwargs):
-        super(OrcaAPIWidget, self).__init__(**kwargs)
+    def __init__(self, title: str = "Coqui API Settings", **kwargs):
+        super(CoquiAPIWidget, self).__init__(**kwargs)
         self.title = title
-        self.name = OrcaAPI.__name__.lower() + "_settings"
-        self.voice_names = [f"{voice['display_name']}" for voice in OrcaAPI.voices]
+        self.name = CoquiAPI.__name__.lower() + "_settings"
+        self.voice_names = [f"{voice['display_name']}" for voice in CoquiAPI.voices]
 
     def on_leave(self, *args):
-        log.info("Leaving Orca settings screen.")
+        log.info("Leaving Coqui settings screen.")
         if self.settings:
             self.settings.save_settings()
 
@@ -46,9 +48,8 @@ class CustomSpinner(Button):
         self.dropdown.bind(on_select=lambda instance, x: setattr(self, 'text', x))
 
 
-class OrcaAPISettings(BaseApiSettings):
-    api_name = "OrcaAPI"
-    api_key_text = StringProperty("")
+class CoquiAPISettings(BaseApiSettings):
+    api_name = "CoquiAPI"
     voice_text = StringProperty("")
     model_text = StringProperty("standard")
 
@@ -58,58 +59,48 @@ class OrcaAPISettings(BaseApiSettings):
 
     @classmethod
     def get_settings_widget(cls):
-        return OrcaAPIWidget()
+        return CoquiAPIWidget()
 
     def __init__(self, widget, **kwargs):
-        super(OrcaAPISettings, self).__init__(**kwargs)
+        super(CoquiAPISettings, self).__init__(**kwargs)
         self.widget = widget
         widget.settings = self
 
-        # Bind the text fields in the widget to settings
-        self.widget.api_key_input.bind(text=self.update_settings)
-        self.bind(api_key_text=self.widget.api_key_input.setter('text'))
+        self.widget.voice_selection.bind(text=self.update_settings)
+        self.bind(voice_text=self.widget.voice_selection.setter('text'))
 
         self.widget.model_selection.bind(text=self.update_settings)
         self.bind(model_text=self.widget.model_selection.setter('text'))
-
-        self.widget.voice_selection.bind(text=self.update_settings)
-        self.bind(voice_text=self.widget.voice_selection.setter('text'))
 
         self.load_settings()
 
     def load_settings(self):
         app_instance = App.get_running_app()
-        self.api_key_text = app_instance.global_settings.get_setting(
-            self.api_name, "api_key", default="")
         self.voice_text = app_instance.global_settings.get_setting(
-            self.api_name, "voice", default="Ingrid (de-AT)")
+            self.api_name, "voice", default="")
         self.model_text = app_instance.global_settings.get_setting(
             self.api_name, "model", default="standard")
 
     def save_settings(self):
         app_instance = App.get_running_app()
         app_instance.global_settings.update_setting(
-            self.api_name, "api_key", self.api_key_text)
-        app_instance.global_settings.update_setting(
             self.api_name, "voice", self.voice_text)
         app_instance.global_settings.update_setting(
             self.api_name, "model", self.model_text)
 
     def update_settings(self, instance, value):
-        self.api_key_text = self.widget.api_key_input.text
-        self.model_text = self.widget.model_selection.text
+        self.voice_text = self.widget.voice_selection.text
         self.voice_text = self.widget.voice_selection.text
 
 
-class OrcaAPI(BaseApi):
+class CoquiAPI(BaseApi):
     voices = [
-        {"display_name": "English (female)", "internal_name": "src/api/orcaapi/lib/orca_params_female.pv"},
-        {"display_name": "English (male)", "internal_name": "src/api/orcaapi/lib/orca_params_male.pv"}
+        {"display_name": "Thorsten (de)", "internal_name": "tts_models/de/thorsten/vits"},
     ]
     voice_mapping = {voice["display_name"]: voice["internal_name"] for voice in voices}
 
-    def __init__(self, settings: OrcaAPISettings):
-        super(OrcaAPI, self).__init__(settings)
+    def __init__(self, settings: CoquiAPISettings):
+        super(CoquiAPI, self).__init__(settings)
         self.settings = settings
 
     def get_available_voices(self):
@@ -126,16 +117,8 @@ class OrcaAPI(BaseApi):
 
     def synthesize(self, input_text: str, out_filename: str):
         try:
-            orca = pvorca.create(
-                access_key=self.settings.widget.ids.api_key_input.text,
-                model_path=self.settings.voice_text
-            )
-
-            # Text-zu-Sprache-Synthese und Speichern in Datei
-            orca.synthesize_to_file(text=input_text, output_path=out_filename)
-
-            # Ressourcen freigeben
-            orca.delete()
-            log.info(f"Successfully saved {out_filename}")
+            tts = TTS(model_name=self.settings.voice_text).to(device)
+            tts.tts_to_file(text=input_text, file_path=out_filename)
         except Exception as e:
-            log.error(f"Orca Sdk synthesize error: {e}")
+            log.error(f"Error during synthesis: {e}")
+            raise

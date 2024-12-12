@@ -58,12 +58,11 @@ class SpeechJokey(MDApp):
         Config.set('kivy', 'window_icon', self.icon)
         log.setLevel(LOG_LEVELS["debug"])
         self.apis = load_apis()
-        self.api_elevenlabs = self.apis.get("ElevenLabsAPI", None)
-        self.api_orca = self.apis.get("OrcaAPI", None)
+        self.api_coqui = self.apis.get("CoquiAPI", None)
         self.sm.add_widget(MainScreen(title="Speech Jokey", name="main"))
         self.settings = Settings(title="Settings", name="settings")
         self.sm.add_widget(self.settings)
-        self.settings.setup_apis([self.api_elevenlabs, self.api_orca])
+        self.settings.setup_apis([self.api_coqui])
         self.sm.add_widget(About(title="About", name="about"))
         return self.sm
 
