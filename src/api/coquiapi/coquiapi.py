@@ -91,12 +91,12 @@ class CoquiAPI(BaseApi):
     voices = [
         {"display_name": "Thorsten (de)", "internal_name": "tts_models/de/thorsten/vits", "speaker_type": "single"},
 
-        {"display_name": "multi-dataset (en-f1)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-en-5", "speaker_type": "multi", "lang": "en"},
-        {"display_name": "multi-dataset (en-f2)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-en-5\n", "speaker_type": "multi", "lang": "en"},
-        {"display_name": "multi-dataset (en-m1)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-en-2", "speaker_type": "multi", "lang": "en"},
-        {"display_name": "multi-dataset (en-m2)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-en-2\n", "speaker_type": "multi", "lang": "en"},
-        {"display_name": "multi-dataset (pt-f)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-pt-4\n", "speaker_type": "multi", "lang": "pt-br"},
-        {"display_name": "multi-dataset (pt-m)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-pt-3\n", "speaker_type": "multi", "lang": "pt-br"}
+        {"display_name": "YourTTS (en-f1)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-en-5", "speaker_type": "multi", "lang": "en"},
+        {"display_name": "YourTTS (en-f2)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-en-5\n", "speaker_type": "multi", "lang": "en"},
+        {"display_name": "YourTTS (en-m1)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-en-2", "speaker_type": "multi", "lang": "en"},
+        {"display_name": "YourTTS (en-m2)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-en-2\n", "speaker_type": "multi", "lang": "en"},
+        {"display_name": "YourTTS (pt-f)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-pt-4\n", "speaker_type": "multi", "lang": "pt-br"},
+        {"display_name": "YourTTS (pt-m)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-pt-3\n", "speaker_type": "multi", "lang": "pt-br"}
 
     ]
     voice_mapping = {voice["display_name"]: voice["internal_name"] for voice in voices}
