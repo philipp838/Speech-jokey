@@ -69,9 +69,6 @@ class CoquiAPISettings(BaseApiSettings):
         self.widget.voice_selection.bind(text=self.update_settings)
         self.bind(voice_text=self.widget.voice_selection.setter('text'))
 
-        self.widget.model_selection.bind(text=self.update_settings)
-        self.bind(model_text=self.widget.model_selection.setter('text'))
-
         self.load_settings()
 
     def load_settings(self):
@@ -85,17 +82,22 @@ class CoquiAPISettings(BaseApiSettings):
         app_instance = App.get_running_app()
         app_instance.global_settings.update_setting(
             self.api_name, "voice", self.voice_text)
-        app_instance.global_settings.update_setting(
-            self.api_name, "model", self.model_text)
 
     def update_settings(self, instance, value):
-        self.voice_text = self.widget.voice_selection.text
         self.voice_text = self.widget.voice_selection.text
 
 
 class CoquiAPI(BaseApi):
     voices = [
-        {"display_name": "Thorsten (de)", "internal_name": "tts_models/de/thorsten/vits"},
+        {"display_name": "Thorsten (de)", "internal_name": "tts_models/de/thorsten/vits", "speaker_type": "single"},
+
+        {"display_name": "multi-dataset (en-f1)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-en-5", "speaker_type": "multi", "lang": "en"},
+        {"display_name": "multi-dataset (en-f2)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-en-5\n", "speaker_type": "multi", "lang": "en"},
+        {"display_name": "multi-dataset (en-m1)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-en-2", "speaker_type": "multi", "lang": "en"},
+        {"display_name": "multi-dataset (en-m2)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-en-2\n", "speaker_type": "multi", "lang": "en"},
+        {"display_name": "multi-dataset (pt-f)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-pt-4\n", "speaker_type": "multi", "lang": "pt-br"},
+        {"display_name": "multi-dataset (pt-m)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-pt-3\n", "speaker_type": "multi", "lang": "pt-br"}
+
     ]
     voice_mapping = {voice["display_name"]: voice["internal_name"] for voice in voices}
 
@@ -117,8 +119,40 @@ class CoquiAPI(BaseApi):
 
     def synthesize(self, input_text: str, out_filename: str):
         try:
-            tts = TTS(model_name=self.settings.voice_text).to(device)
-            tts.tts_to_file(text=input_text, file_path=out_filename)
+            # Stimme anhand des gespeicherten Display-Namens abrufen
+            selected_voice = next(
+                (v for v in self.voices if v["internal_name"] == self.settings.voice_text), None
+            )
+
+            if not selected_voice:
+                log.error("Selected voice not found.")
+                return
+
+            # Multilinguale Unterstützung prüfen
+            speaker_type = selected_voice.get("speaker_type", None)
+            lang = selected_voice.get("lang", None)
+
+            # Get model
+            model = self.settings.voice_text.split("--")[0]
+            tts = TTS(model_name=model).to(device)
+
+            if speaker_type == "multi" and lang:
+                speaker = self.settings.voice_text.split("--")[-1]
+                # Provide speaker and language for multilanguage voice
+                tts.tts_to_file(
+                    text=input_text,
+                    speaker=speaker,
+                    language=lang,
+                    file_path=out_filename
+                )
+            elif speaker_type == "single":
+                tts.tts_to_file(
+                    text=input_text,
+                    file_path=out_filename
+                )
+
+            log.info(f"Audio successfully saved to {out_filename}")
+
         except Exception as e:
             log.error(f"Error during synthesis: {e}")
             raise
