@@ -89,7 +89,7 @@ class CoquiAPISettings(BaseApiSettings):
 
 class CoquiAPI(BaseApi):
     voices = [
-        {"display_name": "Thorsten (de)", "internal_name": "tts_models/de/thorsten/vits", "speaker_type": "single"},
+        {"display_name": "Vits (de)", "internal_name": "tts_models/de/thorsten/vits", "speaker_type": "single"},
 
         {"display_name": "YourTTS (en-f1)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-en-5", "speaker_type": "multi", "lang": "en"},
         {"display_name": "YourTTS (en-f2)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-en-5\n", "speaker_type": "multi", "lang": "en"},
