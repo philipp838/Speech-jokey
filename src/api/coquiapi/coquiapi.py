@@ -91,12 +91,16 @@ class CoquiAPI(BaseApi):
     voices = [
         {"display_name": "Vits (de)", "internal_name": "tts_models/de/thorsten/vits", "speaker_type": "single"},
 
-        {"display_name": "YourTTS (en-f1)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-en-5", "speaker_type": "multi", "lang": "en"},
-        {"display_name": "YourTTS (en-f2)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-en-5\n", "speaker_type": "multi", "lang": "en"},
-        {"display_name": "YourTTS (en-m1)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-en-2", "speaker_type": "multi", "lang": "en"},
-        {"display_name": "YourTTS (en-m2)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-en-2\n", "speaker_type": "multi", "lang": "en"},
-        {"display_name": "YourTTS (pt-f)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-pt-4\n", "speaker_type": "multi", "lang": "pt-br"},
-        {"display_name": "YourTTS (pt-m)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-pt-3\n", "speaker_type": "multi", "lang": "pt-br"}
+        {"display_name": "Tortoise (en)", "internal_name": "tts_models/en/multi-dataset/tortoise-v2", "speaker_type": "single"},
+
+        {"display_name": "YourTTS (en-female1)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-en-5", "speaker_type": "multi", "lang": "en"},
+        {"display_name": "YourTTS (en-female2)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-en-5\n", "speaker_type": "multi", "lang": "en"},
+        {"display_name": "YourTTS (en-male1)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-en-2", "speaker_type": "multi", "lang": "en"},
+        {"display_name": "YourTTS (en-male2)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-en-2\n", "speaker_type": "multi", "lang": "en"},
+        {"display_name": "YourTTS (pt-female)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-pt-4\n", "speaker_type": "multi", "lang": "pt-br"},
+        {"display_name": "YourTTS (pt-male)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-pt-3\n", "speaker_type": "multi", "lang": "pt-br"},
+        {"display_name": "YourTTS (fr-female)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-en-5\n", "speaker_type": "multi", "lang": "fr-fr"},
+        {"display_name": "YourTTS (fr-male)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-en-2\n", "speaker_type": "multi", "lang": "fr-fr"}
 
     ]
     voice_mapping = {voice["display_name"]: voice["internal_name"] for voice in voices}
@@ -136,18 +140,19 @@ class CoquiAPI(BaseApi):
             model = self.settings.voice_text.split("--")[0]
             tts = TTS(model_name=model).to(device)
 
-            if speaker_type == "multi" and lang:
+            if speaker_type == "single":
+                tts.tts_to_file(
+                    text=input_text,
+                    file_path=out_filename
+                )
+
+            elif speaker_type == "multi" and lang:
                 speaker = self.settings.voice_text.split("--")[-1]
                 # Provide speaker and language for multilanguage voice
                 tts.tts_to_file(
                     text=input_text,
                     speaker=speaker,
                     language=lang,
-                    file_path=out_filename
-                )
-            elif speaker_type == "single":
-                tts.tts_to_file(
-                    text=input_text,
                     file_path=out_filename
                 )
 
