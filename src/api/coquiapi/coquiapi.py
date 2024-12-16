@@ -173,7 +173,8 @@ class CoquiAPI(BaseApi):
                     text=input_text,
                     speaker=speaker,
                     language=lang,
-                    file_path=out_filename
+                    file_path=out_filename,
+                    split_sentences=True
                 )
 
             log.info(f"Audio successfully saved to {out_filename}")
