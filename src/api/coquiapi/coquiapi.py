@@ -101,8 +101,28 @@ class CoquiAPI(BaseApi):
         {"display_name": "YourTTS (pt-male)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-pt-3\n", "speaker_type": "multi", "lang": "pt-br"},
         {"display_name": "YourTTS (fr-female)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-en-5\n", "speaker_type": "multi", "lang": "fr-fr"},
         {"display_name": "YourTTS (fr-male)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-en-2\n", "speaker_type": "multi", "lang": "fr-fr"}
-
     ]
+    xtts_v2_lang = ['de', 'en', 'es', 'fr', 'it', 'pt', 'pl', 'tr', 'ru', 'nl', 'cs', 'ar', 'zh-cn', 'hu', 'ko', 'ja', 'hi']
+    xtts_v2_speaker = ['Claribel Dervla', 'Daisy Studious', 'Gracie Wise', 'Tammie Ema', 'Alison Dietlinde', 'Ana Florence',
+                       'Annmarie Nele', 'Asya Anara', 'Brenda Stern',  'Gitta Nikolina', 'Henriette Usha', 'Sofia Hellen',
+                       'Tammy Grit', 'Tanja Adelina', 'Vjollca Johnnie', 'Andrew Chipper', 'Badr Odhiambo', 'Dionisio Schuyler',
+                       'Royston Min', 'Viktor Eka', 'Abrahan Mack', 'Adde Michal', 'Baldur Sanjin', 'Craig Gutsy', 'Damien Black',
+                       'Gilberto Mathias', 'Ilkin Urbano', 'Kazuhiko Atallah', 'Ludvig Milivoj', 'Suad Qasim', 'Torcull Diarmuid',
+                       'Viktor Menelaos', 'Zacharie Aimilios', 'Nova Hogarth', 'Maja Ruoho', 'Uta Obando', 'Lidiya Szekeres',
+                       'Chandra MacFarland', 'Szofi Granger', 'Camilla Holmström', 'Lilya Stainthorpe', 'Zofija Kendrick',
+                       'Narelle Moon', 'Barbora MacLean', 'Alexandra Hisakawa', 'Alma María', 'Rosemary Okafor', 'Ige Behringer',
+                       'Filip Traverse', 'Damjan Chapman', 'Wulf Carlevaro', 'Aaron Dreschner', 'Kumar Dahl', 'Eugenio Mataracı',
+                       'Ferran Simen', 'Xavier Hayasaka', 'Luis Moray', 'Marcos Rudaski']
+
+    for lang in xtts_v2_lang:
+        for speaker in xtts_v2_speaker:
+            voices.append({
+                "display_name": f"{speaker} ({lang})",
+                "internal_name": f"tts_models/multilingual/multi-dataset/xtts_v2--{speaker}",
+                "speaker_type": "multi",
+                "lang": lang
+            })
+
     voice_mapping = {voice["display_name"]: voice["internal_name"] for voice in voices}
 
     def __init__(self, settings: CoquiAPISettings):
@@ -123,7 +143,7 @@ class CoquiAPI(BaseApi):
 
     def synthesize(self, input_text: str, out_filename: str):
         try:
-            # Stimme anhand des gespeicherten Display-Namens abrufen
+            # Get current voice from display name
             selected_voice = next(
                 (v for v in self.voices if v["internal_name"] == self.settings.voice_text), None
             )
