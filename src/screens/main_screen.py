@@ -431,6 +431,13 @@ class MainScreen(MDScreen):
         self.selected_voice = voice_name
         self.voice_dropdown_menu.dismiss()
 
+        popup_content = Popups(voice_name=voice_name)
+        popup_window = Popup(title="Voice Selection",
+                             content=popup_content,
+                             size_hint=(0.6, 0.4),
+                             auto_dismiss=True)
+        popup_window.open()
+
     def on_synthesize(self):
         current_engine = self.get_current_tts_engine()
 
