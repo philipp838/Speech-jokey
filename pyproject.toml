@@ -23,6 +23,8 @@ kivymd = {url = "https://github.com/kivymd/KivyMD/archive/5fb6654a83ffa1a20bd9c6
 python-dotenv = "^1.0.1"
 soundfile = "*"
 sounddevice = "*"
+docx2txt = "^0.8"
+python-docx = "^1.1.2"
 
 [build-system]
 requires = ["poetry-core"]
