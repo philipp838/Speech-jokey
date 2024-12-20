@@ -169,6 +169,9 @@ class ExampleAPI(BaseApi):
     def set_voice_name(self, voice_name):
         pass
 
+    def get_voice_name(self):
+        return "no voice"
+
     def text_to_api_format(self, text):
         pass
 

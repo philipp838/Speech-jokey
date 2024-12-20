@@ -14,7 +14,7 @@ a = Analysis(
     ['src\\main.py'],
     pathex=[path],
     binaries=[],
-    datas=[],
+    datas=[('fonts', 'fonts')],
     hiddenimports=['win32timezone', 'pkg_resources.extern', 'kivymd.icon_definitions', 'elevenlabs'],
     hookspath=[kivymd_hooks_path],
     hooksconfig={},

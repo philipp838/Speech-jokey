@@ -194,6 +194,12 @@ class BaseApi(ABC, EventDispatcher, metaclass=ABCMeta):
         """
         pass
 
+    def get_voice_name(self):
+        """
+        Gets the active voice name
+        """
+        pass
+
     @abstractmethod
     def text_to_api_format(self, text):
         """
