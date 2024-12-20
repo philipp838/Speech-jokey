@@ -14,7 +14,7 @@ class ApiFactory:
     """
     _instance = None
     apis = {}
-    api_names = ["ElevenLabsAPI","ExampleAPI"]
+    api_names = ["GttsAPI","ElevenLabsAPI","ExampleAPI"]
     active_api_name = api_names[0]
 
     def __new__(cls, *args, **kwargs):
@@ -66,7 +66,14 @@ class ApiFactory:
                 self.apis[name] = self.get_api(name)
             except Exception as e:
                 log.error("Error loading API %s: %s", name, str(e))
+    def get_apis_dict(self):
+        apis_dict=dict()
 
+        for api_name in self.api_names:
+            apis_dict[api_name]=self.get_api(api_name)
+
+        return apis_dict
+    
     def get_default_api(self):
         """
         This method returns the default API instance.

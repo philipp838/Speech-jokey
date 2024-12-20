@@ -274,9 +274,7 @@ class MainScreen(MDScreen):
 
     def on_select_tts_engine(self):
         api = api_factory.get_active_api()
-        available_engines = {
-            api_factory.get_active_api_name(): api_factory.get_active_api()
-        }
+        available_engines = api_factory.get_apis_dict()
 
         # Prepare menu items for each available TTS engine
         menu_items = [
