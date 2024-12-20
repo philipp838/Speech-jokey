@@ -95,6 +95,13 @@ class ExampleAPIWidget(MDScreen):
 class ExampleAPISettings(BaseApiSettings):
     # NOTE Here you could define the SETTING properties of the API if you go with the second design pattern
     # ... (e.g. setting_1 = BooleanProperty(), setting_2 = StringProperty(), setting_3 = NumericProperty(), setting_4 = BooleanProperty()
+    api_name = "ExampleAPI" # NOTE This property is used to identify the API in the API factory
+    # NOTE ElevenLabs API SETTING properties (not to be mistaken with the properties of the widget, holding current selections)
+    api_key_text = StringProperty("")
+    voice_text = StringProperty("")
+    model_text = StringProperty("")
+
+
 
     def __init__(self, widget, **kwargs):
         super(ExampleAPISettings, self).__init__(**kwargs)
@@ -140,11 +147,35 @@ class ExampleAPI(BaseApi):
 
         # NOTE Any API specific initialization code can be placed here
 
+    def init_api(self):
+        pass
+
+    def reset_api(self):
+        pass
+
     def synthesize(self, input: str, file: str):
         print("synthesizing...")
         # Placeholder implementation
         pass
-    
+
+    def get_available_voice_names(self):
+        return []
+        pass
+
+    def get_available_model_names(self):
+        return []
+        pass
+
+    def set_voice_name(self, voice_name):
+        pass
+
+    def text_to_api_format(self, text):
+        pass
+
+    def text_from_api_format(self, text):
+        return text
+        pass
+
     def do_api_specific_stuff(self):
         print(f"Doing stuff with Example setting: ...")
 

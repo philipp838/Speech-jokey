@@ -18,6 +18,8 @@ import sys
 # Custom
 from modules.dialog.exitdialog import ExitDialog
 
+from api.api_factory import api_factory
+
 
 class MainScreen(MDScreen):
     title = StringProperty()
@@ -58,7 +60,7 @@ class MainScreen(MDScreen):
         self.old_cursor_index = self.ids.text_main.cursor_index()
         Clock.schedule_once(self.set_focus, 0.1)
         self.load_current_voice()
-        App.get_running_app().api.settings.bind(voice_text=self.update_current_voice)
+        api_factory.get_active_api().settings.bind(voice_text=self.update_current_voice)
 
     def load_current_voice(self): 
         app_instance = App.get_running_app()
@@ -163,11 +165,10 @@ class MainScreen(MDScreen):
             log.info("%s: Saved file: %s", self.__class__.__name__, file)
 
     def on_select_voice(self):
-        api = App.get_running_app().api
-        # print(f"This is the api used: {api}")
-        print("clicked on voice selection")
+        api = api_factory.get_active_api()
+
         if api:
-            voice_names = api.get_available_voices()
+            voice_names = api.get_available_voice_names()
             if voice_names:
                 # make list of menu-items for every voice
                 menu_items = [
@@ -193,8 +194,8 @@ class MainScreen(MDScreen):
     def select_voice(self, voice_name):
         # process selected voice names
         log.info("%s: Selected voice: %s", self.__class__.__name__, voice_name)
-        api = App.get_running_app().api
-        api.set_voice(voice_name)
+        api = api_factory.get_active_api()
+        api.set_voice_name(voice_name)
 
         popup_window = CustomPopup(content_text=f"You selected the voice: \n{voice_name}",
                                    size_hint=(None, None), size=(400, 400))
@@ -203,7 +204,7 @@ class MainScreen(MDScreen):
 
     def on_play(self):
         # TODO Implement audio playback (this is mostly a placeholder without a backend implementation yet)
-        api = App.get_running_app().api
+        api = api_factory.get_active_api()
         if api:
             try:
                 api.play()
@@ -216,26 +217,29 @@ class MainScreen(MDScreen):
 
     def on_synthesize(self):
         # TODO Implement text to speech synthesis (this is mostly a placeholder without a backend implementation yet)
-        api = App.get_running_app().api
+        api = api_factory.get_active_api()
         tmp_dir = App.get_running_app().global_settings.get_tmp_dir()
         synthesized_file = os.path.join(tmp_dir, 'output_file.wav')
         log.info(f"Using synthesized_file={synthesized_file}")
 
         if api:
+            msg=f"Text has been synthesized\nto an audio file"
             try:
                 # FIXME: Use constant or configurable output path
                 api.synthesize(self.ids.text_main.text, synthesized_file)
             except NotImplementedError:
                 msg = "Text to speech synthesis not implemented for this API."
                 log.error("%s: %s", self.__class__.__name__, msg)
-                self.ids.label_status.text = msg
+
             except Exception as e:
-                msg = "Error during synthesis"
+                msg = "Error during synthesis: \n"+str(e)
                 log.error("%s: %s: %s", self.__class__.__name__, msg, e)
-                self.ids.label_status.text = msg
-        popup_window = CustomPopup(content_text=f"Text has been synthesized\nto an audio file",
-                                   size_hint=(None, None), size=(400, 400))
-        popup_window.open()
+
+            self.ids.label_status.text = msg
+            popup_window = CustomPopup(content_text=msg,
+                                       size_hint=(None, None), size=(400, 400))
+            popup_window.open()
+
     def on_cursor_control(self):
         new_cursor_index = self.ids.text_main.cursor_index()
         old_cursor_index = self.old_cursor_index

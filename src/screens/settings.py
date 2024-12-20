@@ -1,5 +1,5 @@
 # Kivy
-from kivy.app import App
+
 from kivy.properties import StringProperty
 from kivy.logger import Logger as log
 # KivyMD
@@ -8,11 +8,10 @@ from kivymd.uix.widget import MDWidget
 from kivymd.uix.button import MDButton
 from kivymd.uix.button import MDButtonIcon
 from kivymd.uix.button import MDButtonText
-from kivymd.uix.list import MDListItem
-# from ..api.elevenlabsapi.elevenlabsapi import ElevenLabsAPIWidget
 
 # stdlib
 import traceback
+from typing import List
 # Custom
 
 class Settings(MDScreen):
@@ -20,7 +19,7 @@ class Settings(MDScreen):
     def __init__(self, title: str, *args, **kwargs):
         super(Settings, self).__init__(*args, **kwargs)
         self.title = title
-    def setup_apis(self, apis: MDWidget):
+    def setup_apis(self, apis: List[MDWidget]):
         log.debug("%s: API: %s", self.__class__.__name__, apis)
         self.buttons = []
         for api in apis:
