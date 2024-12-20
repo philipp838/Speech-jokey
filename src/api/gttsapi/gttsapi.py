@@ -106,9 +106,13 @@ class GttsAPI(BaseApi):
     }
 
     for accent, config in local_accents.items():
+        if "tld" in config:
+            internal_name = f"{config['lang']}-{config['tld']}"
+        else:
+            internal_name = config['lang']
         voices.append({
             "display_name": accent,
-            "internal_name": f"{config['lang']}-{config['tld']}" if "tld" in local_accents else f"{config['lang']}",
+            "internal_name": internal_name,
         })
 
     def __init__(self, settings: GttsAPISettings):
@@ -143,7 +147,9 @@ class GttsAPI(BaseApi):
             return
 
         lang = selected_voice['internal_name'].split('-')[0]
+        print(f"LANG: {lang}")
         tld = selected_voice['internal_name'].split('-')[1] if '-' in selected_voice['internal_name'] else None
+        print(f"ACCENT: {tld}")
 
         try:
             if tld:
