@@ -1,5 +1,6 @@
 from typing import List
 
+import select
 from gtts import gTTS
 import logging as log
 from kivymd.uix.screen import MDScreen
@@ -119,8 +120,10 @@ class GttsAPI(BaseApi):
     def __init__(self, settings: GttsAPISettings):
         super(GttsAPI, self).__init__(settings)
         self.settings = settings
+        self.init_api()
 
     def init_api(self):
+        self.settings.load_settings()
         pass
 
     def reset_api(self):
@@ -152,7 +155,7 @@ class GttsAPI(BaseApi):
 
     def get_voice_name(self):
         selected_voice = self.__get_selected_voice()
-        return selected_voice["display_name"]
+        return selected_voice["display_name"] if selected_voice != None else ""
 
     def synthesize(self, input_text: str, out_filename: str):
         if not input_text:
