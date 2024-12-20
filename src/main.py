@@ -12,6 +12,7 @@ from kivymd.uix.list import MDListItemTrailingIcon
 import os
 import sys
 from pathlib import Path
+
 # Custom
 from screens.about import About
 from screens.settings import Settings
@@ -19,7 +20,7 @@ from screens.main_screen import MainScreen
 from modules.dialog.exitdialog import ExitDialog
 from modules.util.widget_loader import load_widget
 from settings.app_settings import GlobalSettings
-from api.api_factory import load_apis
+from api.api_factory import api_factory
 
 APP_DIR = Path(__file__)
 print(f"APP_DIR={APP_DIR}")
@@ -57,13 +58,16 @@ class SpeechJokey(MDApp):
         self.icon = os.path.join(os.curdir, 'speech-jokey.ico')
         Config.set('kivy', 'window_icon', self.icon)
         log.setLevel(LOG_LEVELS["debug"])
-        self.apis = load_apis()
-        self.api = self.apis.get("ElevenLabsAPI", None)
-        example_api = self.apis.get("ExampleAPI", None)
+
+        # Store API factory object in global properties
+        self.api_factory = api_factory
+        # Load all configured APIs
+        api_factory.load_apis()
+
         self.sm.add_widget(MainScreen(title="Speech Jokey", name="main"))
         self.settings = Settings(title="Settings", name="settings")
         self.sm.add_widget(self.settings)
-        self.settings.setup_apis([self.api, example_api])
+        self.settings.setup_apis(api_factory.apis.values())
         self.sm.add_widget(About(title="About", name="about"))
         return self.sm
 
