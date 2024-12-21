@@ -139,7 +139,10 @@ class OpenAIAPI(BaseApi):
         openai.api_key = self.settings.api_key_text
 
     def reset_api(self):
-        pass
+        self.voices = []
+        self.models = []
+        self.settings.widget.voice_names = []
+        self.settings.widget.model_names = []
 
     def get_available_model_names(self):
         return self.models
