@@ -54,7 +54,6 @@ class AmazonPollyAPIWidget(MDScreen):
 
             sts_client = session.client("sts")
             response = sts_client.get_caller_identity()
-            log.info(f"AWS-Zugangsdaten sind gültig. ARN: {response['Arn']}")
             return True
 
         except ClientError as e:
