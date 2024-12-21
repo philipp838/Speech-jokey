@@ -133,8 +133,9 @@ class OfaiAPI(BaseApi):
     def get_available_voice_names(self):
         return self.voices
 
-    def set_voice_name(self):
-        pass
+    def set_voice_name(self, voice_name):
+        self.settings.voice_text = voice_name
+        self.settings.save_settings()
 
     def get_voice_name(self):
         return self.settings.voice_text
