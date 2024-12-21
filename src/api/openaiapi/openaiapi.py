@@ -48,7 +48,6 @@ class OpenAIAPIWidget(MDScreen):
 
     def __check_openai_api_key(self):
         client = openai.OpenAI(api_key=self.api_key_input.text)
-        print(f"API KEY: {self.api_key_input}")
         try:
             client.models.list()
         except openai.AuthenticationError:
