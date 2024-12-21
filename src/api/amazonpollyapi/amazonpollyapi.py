@@ -98,7 +98,16 @@ class AmazonPollyAPISettings(BaseApiSettings):
         self.secret_access_key_text = app_instance.global_settings.get_setting(
             self.api_name, "secret_access_key_input", default="")
         self.voice_text = app_instance.global_settings.get_setting(
-            self.api_name, "voice", default="Vicky")
+            self.api_name, "voice", default=""
+        )
+        matching_voice = next(
+            (v["display_name"] for v in AmazonPollyAPI.voices if v["internal_name"] == self.voice_text),
+            None
+        )
+        if matching_voice:
+            self.widget.voice_selection.text = matching_voice
+        else:
+            log.warning(f"No matching display name for internal name: {self.voice_text}")
 
     def save_settings(self):
         app_instance = App.get_running_app()
@@ -112,7 +121,14 @@ class AmazonPollyAPISettings(BaseApiSettings):
     def update_settings(self, instance, value):
         self.access_key_id_text = self.widget.access_key_id_input.text
         self.secret_access_key_text = self.widget.secret_access_key_input.text
-        self.voice_text = self.widget.voice_selection.text
+
+        selected_voice = next(
+            (v for v in AmazonPollyAPI.voices if v["display_name"] == self.widget.voice_selection.text),
+            None
+        )
+        if selected_voice:
+            self.voice_text = selected_voice["internal_name"]
+            log.info(f"Saved internal_name: {self.voice_text}")
 
 
 class AmazonPollyAPI(BaseApi):
@@ -131,6 +147,17 @@ class AmazonPollyAPI(BaseApi):
         {"display_name": "Raveena (en-IN)", "internal_name": "Raveena", "language": "en-IN"},
         {"display_name": "Aditi (en-IN)", "internal_name": "Aditi", "language": "en-IN"}
     ]
+
+    ssml_tags = {
+        "⏸️": ('<break time="2s"/>', ""),
+        "😐": ("<emphasis level=\"reduced\">", "</emphasis>"),
+        "🙂": ("<emphasis level=\"moderate\">", "</emphasis>"),
+        "😁": ("<emphasis level=\"strong\">", "</emphasis>"),
+        "🔈": ("<prosody volume=\"silent\">", "</prosody>"),
+        "🔉": ("<prosody volume=\"medium\">", "</prosody>"),
+        "🔊": ("<prosody volume=\"loud\">", "</prosody>"),
+        "🌏": ("<lang xml:lang=\"en-US\">", "</lang>")
+    }
 
     # Create a mapping for quick lookup of internal names by display name
     voice_mapping = {voice["display_name"]: voice["internal_name"] for voice in voices}
@@ -203,26 +230,13 @@ class AmazonPollyAPI(BaseApi):
 
         return ssml_text
 
-    def on_synthesize(self, input_text: str, file_path: str, ssml_tags: dict):
-        """
-        Perform synthesis with Amazon Polly, handling emojis and SSML conversion.
-        """
-        try:
-            # Convert text to SSML
-            processed_text = self.emoji_to_ssml_tag(input_text, ssml_tags)
-
-            # Perform synthesis
-            self.synthesize(processed_text, file_path)
-
-            log.info("Amazon Polly synthesis completed successfully.")
-        except Exception as e:
-            log.error("Error during Amazon Polly synthesis: %s", e)
-            raise
-
     def synthesize(self, input_text: str, out_filename: str):
         try:
+            # Perform SSML conversion
+            processed_text = self.emoji_to_ssml_tag(input_text, self.ssml_tags)
+
             response = self.polly_client.synthesize_speech(
-                Text=input_text,
+                Text=processed_text,
                 TextType="ssml",
                 OutputFormat="mp3",
                 VoiceId=self.settings.voice_text
