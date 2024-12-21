@@ -14,7 +14,7 @@ class ApiFactory:
     """
     _instance = None
     apis = {}
-    api_names = ["GttsAPI","ElevenLabsAPI","ExampleAPI"]
+    api_names = ["GttsAPI","ElevenLabsAPI","ExampleAPI","OfaiAPI"]
     active_api_name = api_names[0]
 
     def __new__(cls, *args, **kwargs):
