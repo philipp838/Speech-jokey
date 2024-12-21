@@ -15,15 +15,13 @@ class MSAzureAPIWidget(MDScreen):
     api_key_input = ObjectProperty(None)
     region_input = ObjectProperty(None)
     voice_selection = ObjectProperty(None)
-    model_selection = ObjectProperty(None)
     voice_names = ListProperty()
-    model_names = ListProperty(["standard"])
 
     def __init__(self, title: str = "Microsoft Azure API Settings", **kwargs):
         super(MSAzureAPIWidget, self).__init__(**kwargs)
         self.title = title
         self.name = MSAzureAPI.__name__.lower() + "_settings"
-        self.voice_names = [f"{voice['display_name']}" for voice in MSAzureAPI._voices]
+        self.voice_names = [f"{voice['display_name']}" for voice in MSAzureAPI.voices]
 
     def on_leave(self, *args):
         log.info("Leaving OpenAI settings screen.")
@@ -40,12 +38,12 @@ class MSAzureAPIWidget(MDScreen):
         api_name = "MSAzureAPI"
         app_instance.api_factory.get_api(api_name).reset_api()
         app_instance.api_factory.get_api(api_name).init_api()
-        if self.__check_polly_api_key():
+        if self.__check_azure_api_key():
             log.info("Microsoft Azure API key valid.")
         else:
             log.error("Microsoft Azure API key invalid.")
 
-    def __check_polly_api_key(self):
+    def __check_azure_api_key(self):
         speech_config = speechsdk.SpeechConfig(
             subscription=self.settings.api_key_text,
             region=self.settings.region_text
@@ -74,7 +72,6 @@ class MSAzureAPISettings(BaseApiSettings):
     api_key_text = StringProperty("")
     voice_text = StringProperty("Ingrid (de-AT)")
     region_text = StringProperty("")
-    model_text = StringProperty("standard")
     lang_text = StringProperty("")
 
     @classmethod
@@ -94,9 +91,6 @@ class MSAzureAPISettings(BaseApiSettings):
         self.widget.api_key_input.bind(text=self.update_settings)
         self.bind(api_key_text=self.widget.api_key_input.setter('text'))
 
-        self.widget.model_selection.bind(text=self.update_settings)
-        self.bind(model_text=self.widget.model_selection.setter('text'))
-
         self.widget.voice_selection.bind(text=self.update_settings)
         self.bind(voice_text=self.widget.voice_selection.setter('text'))
 
@@ -107,16 +101,24 @@ class MSAzureAPISettings(BaseApiSettings):
 
     def load_settings(self):
         app_instance = App.get_running_app()
+
         self.api_key_text = app_instance.global_settings.get_setting(
             self.api_name, "api_key", default="")
-        self.voice_text = app_instance.global_settings.get_setting(
-            self.api_name, "voice", default="Ingrid (de-AT)")
-        self.model_text = app_instance.global_settings.get_setting(
-            self.api_name, "model", default="standard")
         self.region_text = app_instance.global_settings.get_setting(
             self.api_name, "region", default="")
         self.lang_text = app_instance.global_settings.get_setting(
             self.api_name, "language", default="")
+        self.voice_text = app_instance.global_settings.get_setting(
+            self.api_name, "voice", default=""
+        )
+        matching_voice = next(
+            (v["display_name"] for v in MSAzureAPI.voices if v["internal_name"] == self.voice_text),
+            None
+        )
+        if matching_voice:
+            self.widget.voice_selection.text = matching_voice
+        else:
+            log.warning(f"No matching display name for internal name: {self.voice_text}")
 
     def save_settings(self):
         app_instance = App.get_running_app()
@@ -125,21 +127,25 @@ class MSAzureAPISettings(BaseApiSettings):
         app_instance.global_settings.update_setting(
             self.api_name, "voice", self.voice_text)
         app_instance.global_settings.update_setting(
-            self.api_name, "model", self.model_text)
-        app_instance.global_settings.update_setting(
             self.api_name, "region", self.region_text)
         app_instance.global_settings.update_setting(
             self.api_name, "language", self.lang_text)
 
     def update_settings(self, instance, value):
         self.api_key_text = self.widget.api_key_input.text
-        self.model_text = self.widget.model_selection.text
-        self.voice_text = self.widget.voice_selection.text
         self.region_text = self.widget.region_input.text
+
+        selected_voice = next(
+            (v for v in MSAzureAPI.voices if v["display_name"] == self.widget.voice_selection.text),
+            None
+        )
+        if selected_voice:
+            self.voice_text = selected_voice["internal_name"]
+            log.info(f"Saved internal_name: {self.voice_text}")
 
 
 class MSAzureAPI(BaseApi):
-    _voices = [
+    voices = [
         {"display_name": "Ingrid (de-AT)", "internal_name": "de-AT-IngridNeural", "language": "de-AT"},
         {"display_name": "Jonas (de-AT)", "internal_name": "de-AT-JonasNeural", "language": "de-AT"},
         {"display_name": "Seraphina (de-DE)", "internal_name": "de-DE-SeraphinaMultilingualNeural", "language": "de-DE"},
@@ -154,22 +160,52 @@ class MSAzureAPI(BaseApi):
         {"display_name": "Libby (en-GB)", "internal_name": "en-GB-LibbyNeural", "language": "en-GB"},
         {"display_name": "Ryan (en-GB)", "internal_name": "en-GB-RyanNeural", "language": "en-GB"}
     ]
+    voice_mapping = {voice["display_name"]: voice["internal_name"] for voice in voices}
 
-    _voice_mapping = {voice["display_name"]: voice["internal_name"] for voice in _voices}
+    ssml_tags = {
+        "⏸️": ('<break time="2s"/>', ""),
+        "😐": ("<emphasis level=\"reduced\">", "</emphasis>"),
+        "🙂": ("<emphasis level=\"moderate\">", "</emphasis>"),
+        "😁": ("<emphasis level=\"strong\">", "</emphasis>"),
+        "🔈": ("<prosody volume=\"silent\">", "</prosody>"),
+        "🔉": ("<prosody volume=\"medium\">", "</prosody>"),
+        "🔊": ("<prosody volume=\"loud\">", "</prosody>"),
+        "🌏": ("<lang xml:lang=\"en-US\">", "</lang>")
+    }
 
     def __init__(self, settings: MSAzureAPISettings):
         super(MSAzureAPI, self).__init__(settings)
         self.settings = settings
 
-    def get_available_voices(self):
-        return [voice["display_name"] for voice in self._voices]
+    def init_api(self):
+        self.settings.load_settings()
 
-    def set_voice_and_language(self, display_name):
+    def reset_api(self):
+        self.voices = []
+        self.settings.widget.voice_names = []
+
+    def get_available_model_names(self):
+        return []
+
+    def text_to_api_format(self, text):
+        return text
+
+    def text_from_api_format(self, text):
+        return text
+
+    def get_available_voice_names(self):
+        return [voice["display_name"] for voice in self.voices]
+
+    def get_voice_name(self):
+        selected_voice = self.__get_selected_voice()
+        return selected_voice["display_name"]
+
+    def set_voice_name(self, display_name):
         # Map the display name to the internal name and save it
-        internal_name = self._voice_mapping.get(display_name)
+        internal_name = self.voice_mapping.get(display_name)
         if internal_name:
             self.settings.voice_text = internal_name
-            voice_info = next((voice for voice in self._voices if voice["internal_name"] == self.settings.voice_text), None)
+            voice_info = next((voice for voice in self.voices if voice["internal_name"] == self.settings.voice_text), None)
             if voice_info:
                 self.settings.lang_text = voice_info["language"]
                 self.settings.save_settings()
@@ -182,7 +218,7 @@ class MSAzureAPI(BaseApi):
     def set_language(self):
         # Find the language for the selected voice
         selected_voice = self.settings.voice_text
-        voice_info = next((voice for voice in self._voices if voice["internal_name"] == selected_voice), None)
+        voice_info = next((voice for voice in self.voices if voice["internal_name"] == selected_voice), None)
 
         if voice_info:
             self.settings.lang_text = voice_info["language"]
@@ -210,14 +246,6 @@ class MSAzureAPI(BaseApi):
 
         return ssml_text
 
-    def on_synthesize(self, input_text: str, file_path: str, ssml_tags: dict):
-        try:
-            processed_text = self.emoji_to_ssml_tag(input_text, ssml_tags)
-            self.synthesize(processed_text, file_path)
-        except Exception as e:
-            log.error("Error during MS Azure synthesis: %s", e)
-            raise
-
     def synthesize(self, input_text: str, file_path: str):
         self.speech_config = speechsdk.SpeechConfig(
             subscription=self.settings.api_key_text,
@@ -227,7 +255,9 @@ class MSAzureAPI(BaseApi):
 
         # Synthesize the speech
         synthesizer = speechsdk.SpeechSynthesizer(speech_config=self.speech_config, audio_config=None)
-        result = synthesizer.speak_ssml_async(input_text).get()
+
+        processed_text = self.emoji_to_ssml_tag(input_text, self.ssml_tags)
+        result = synthesizer.speak_ssml_async(processed_text).get()
 
         # Check the result
         if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
@@ -242,3 +272,9 @@ class MSAzureAPI(BaseApi):
                 if cancellation_details.error_details:
                     print("Error details: {}".format(cancellation_details.error_details))
                     print("Did you set the speech resource key and region values?")
+
+    def __get_selected_voice(self):
+        selected_voice = next(
+            (v for v in self.voices if v['internal_name'] == self.settings.voice_text), None
+        )
+        return selected_voice
