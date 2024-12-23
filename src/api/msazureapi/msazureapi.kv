@@ -1,7 +1,8 @@
-<AmazonPollyAPIWidget>:
+<MSAzureAPIWidget>:
     md_bg_color: self.theme_cls.secondaryContainerColor
-    access_key_id_input: access_key_id_input
-    secret_access_key_input: secret_access_key_input
+
+    api_key_input: api_key_input
+    region_input: region_input
     voice_selection: voice_name_spinner
 
     MDBoxLayout:
@@ -37,25 +38,25 @@
                         icon: "key-variant"
                         pos_hint: {"center_x": .5, "center_y": .5}
                     MDListItemHeadlineText:
-                        text: 'Amazon AWS credentials:'
+                        text: 'Microsoft Azure API Key:'
                     MDListItemSupportingText:
-                        text: "ID and password from your created access key in AWS:"
+                        text: "API key from your MS Azure account"
                     MDTextField:
-                        id: access_key_id_input
+                        id: api_key_input
                         size_hint_x: 1
                         pos_hint: {"center_x": .5, "center_y": .5}
                         MDTextFieldHintText:
-                            text: 'Enter access key ID'
+                            text: 'Enter API Key'
+                        MDTextFieldMaxLengthText:
+                            max_text_length: 84
+                    MDTextField:
+                        id: region_input
+                        size_hint_x: 1
+                        pos_hint: {"center_x": .5, "center_y": .5}
+                        MDTextFieldHintText:
+                            text: 'Enter your region'
                         MDTextFieldMaxLengthText:
                             max_text_length: 20
-                    MDTextField:
-                        id: secret_access_key_input
-                        size_hint_x: 1
-                        pos_hint: {"center_x": .5, "center_y": .5}
-                        MDTextFieldHintText:
-                            text: 'Enter access key password'
-                        MDTextFieldMaxLengthText:
-                            max_text_length: 40
                 MDListItem:
                     MDButton:
                         id: btn_test_api_key

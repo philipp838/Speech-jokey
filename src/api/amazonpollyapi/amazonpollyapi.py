@@ -33,7 +33,7 @@ class AmazonPollyAPIWidget(MDScreen):
         return self.voice_selection.text
 
     def init_api(self):
-        self.settings.update_settings(self.api_key_input, self.api_key_input.text)
+        self.settings.update_settings(self.access_key_id_input, self.secret_access_key_input)
         self.settings.save_settings()
         app_instance = App.get_running_app()
         api_name = "AmazonPollyAPI"
@@ -45,7 +45,25 @@ class AmazonPollyAPIWidget(MDScreen):
             log.error("Amazon Polly API key invalid.")
 
     def __check_polly_api_key(self):
-        pass
+        try:
+            session = boto3.session.Session(
+                aws_access_key_id=self.settings.access_key_id_text,
+                aws_secret_access_key=self.settings.secret_access_key_text,
+                region_name="eu-north-1"
+            )
+
+            sts_client = session.client("sts")
+            response = sts_client.get_caller_identity()
+            return True
+
+        except ClientError as e:
+            # Request error
+            log.error(f"ClientError: {e.response['Error']['Message']}")
+            return False
+        except BotoCoreError as e:
+            # General boto3 error
+            log.error(f"BotoCoreError: {str(e)}")
+            return False
 
 
 class CustomSpinner(Button):
