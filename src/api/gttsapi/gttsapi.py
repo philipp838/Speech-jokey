@@ -147,9 +147,9 @@ class GttsAPI(BaseApi):
             (v for v in self.voices if v["display_name"] == display_name), None
         )
         if selected_voice:
-            self.settings.voice_text = selected_voice["internal_name"]
-            self.settings.save_settings()
             log.info(f"Voice set to: {display_name}")
+            self.settings.voice_text = selected_voice["display_name"]
+            self.settings.save_settings()
         else:
             log.error("Voice not found for display name: %s", display_name)
 
@@ -181,6 +181,6 @@ class GttsAPI(BaseApi):
 
     def __get_selected_voice(self):
         selected_voice = next(
-            (v for v in self.voices if v['internal_name'] == self.settings.voice_text), None
+            (v for v in self.voices if v['display_name'] == self.settings.voice_text), None
         )
         return selected_voice
