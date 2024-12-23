@@ -239,6 +239,9 @@ class ElevenLabsAPI(BaseApi):
         self.settings.voice_text=voice_name
         self.settings.save_settings()
 
+    def get_voice_name(self):
+        return self.settings.voice_text
+
     # Convert the text to a format that the ElevenLabs API can process. This can be converting from simple text to SSML.
     def text_to_api_format(self, text: str):
         text_arr = list(text)

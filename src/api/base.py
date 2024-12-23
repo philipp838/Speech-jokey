@@ -195,6 +195,13 @@ class BaseApi(ABC, EventDispatcher, metaclass=ABCMeta):
         pass
 
     @abstractmethod
+    def get_voice_name(self):
+        """
+        Gets the active voice name
+        """
+        pass
+
+    @abstractmethod
     def text_to_api_format(self, text):
         """
         Converts the given text to the API specific format, e.g. SSML syntax

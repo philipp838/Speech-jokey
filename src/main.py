@@ -1,4 +1,5 @@
 # Kivy
+from kivy.core.text import LabelBase
 from kivymd.app import MDApp
 from kivy.logger import Logger as log, LOG_LEVELS
 from kivy.config import Config
@@ -77,4 +78,10 @@ if __name__ == '__main__':
     log.info(f"Using APP_DIR={APP_DIR}")
     log.info(f"Using TMP_DIR={TMP_DIR}")
     os.makedirs(TMP_DIR, exist_ok=True) # This should fix it permanently
+
+    # Register fonts
+    log.info("Registering Symbola font")
+    font_path = os.path.join(APP_DIR, "./fonts/Symbola.ttf")
+    LabelBase.register(name="symbola", fn_regular=font_path)
+
     SpeechJokey(kv_file="SpeechJokey.kv").run()

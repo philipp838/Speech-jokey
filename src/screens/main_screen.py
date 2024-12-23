@@ -17,13 +17,49 @@ import os
 import sys
 # Custom
 from modules.dialog.exitdialog import ExitDialog
+# .docx to text conversion
+import docx2txt
+from docx import Document
+
+class EmojiPopup(Popup):
+    def __init__(self, text_input, **kwargs):
+        super(EmojiPopup, self).__init__(**kwargs)
+        self.text_input = text_input
+        # Access the shared ssml tags dictionary from MainScreen
+        self.ssml_tags = MainScreen.ssml_tags
+        # Track the state for each emoji
+        self.tag_state = {emoji: "open" for emoji in self.ssml_tags.keys()}
+
+    # Old method to place emoji in textfield
+    def insert_emoji(self, emoji):
+        # Get cursor position
+        cursor_index = self.text_input.cursor_index()
+
+        # Divide the current text of the text input into two parts:
+        # Text before and after cursor position
+        current_text = self.text_input.text
+        new_text = (
+            current_text[:cursor_index] +  # Text in front of cursor
+            emoji +                        # The emoji to be inserted
+            current_text[cursor_index:]    # Text after cursor
+        )
+
+        # Set the new text in the TextInput
+        self.text_input.text = new_text
+
+        # Place the cursor behind the inserted emoji
+        self.text_input.cursor = (cursor_index + len(emoji), 0)
+
+        self.dismiss()
 
 from api.api_factory import api_factory
 
 
 class MainScreen(MDScreen):
     title = StringProperty()
+    current_engine_text = StringProperty("tts engine: \n")
     text_input = ObjectProperty(None)
+    text_type = StringProperty("text")
     voice_dialog = None
     selected_voice = StringProperty()
     # FIXME The values of this dictionary needs to be kept in sync with the screen names in main.py (Unfortunately)
@@ -32,17 +68,23 @@ class MainScreen(MDScreen):
         "About": "about",
         "Exit": None  # NOTE Exit just closes the app and doesn't have an associated screen
     }
-    supported_text_files = ["txt", "md", "rst"]
-
+    ssml_tags = {
+        "⏸️": ('<break time="2s"/>', ""),
+        "😐": ("<emphasis level=\"reduced\">", "</emphasis>"),
+        "🙂": ("<emphasis level=\"moderate\">", "</emphasis>"),
+        "😁": ("<emphasis level=\"strong\">", "</emphasis>"),
+        "🔈": ("<prosody volume=\"silent\">", "</prosody>"),
+        "🔉": ("<prosody volume=\"medium\">", "</prosody>"),
+        "🔊": ("<prosody volume=\"loud\">", "</prosody>"),
+        "🌏": ("<lang xml:lang=\"en-US\">", "</lang>")
+    }
+    supported_text_files = ["txt", "md", "rst", "docx"]
 
     def __init__(self, title: str, **kwargs):
         super(MainScreen, self).__init__(**kwargs)
-        # self.file_load_popup = loaddialog.LoadDialog(callback=self.load_textfile, title="Load file", size_hint=(0.9, 0.9))
-        # # self.file_load_popup.size = (400, 400)
-        # self.file_save_popup = savedialog.SaveDialog(callback=self.save_textfile, title="Save file", size_hint=(0.9, 0.9))
-        # # self.file_save_popup.size = (400, 400)
-        # self.settings_popup = app_settings.AppSettingsPopup()
         self.title = title
+        # Initialize the current TTS engine text
+        self.update_current_engine_text()
         self.last_path = None
         self.opened_file = None
         # FIXME This is used to keep track of the file manager state (open or closed) but is not currently used
@@ -62,13 +104,27 @@ class MainScreen(MDScreen):
         self.load_current_voice()
         api_factory.get_active_api().settings.bind(voice_text=self.update_current_voice)
 
+
+    def on_ssml_button_click(self):
+        try:
+            log.debug("%s: SSML button pressed", self.__class__.__name__)
+            emoji_popup = EmojiPopup(self.ids.text_main)
+            emoji_popup.open()
+        except Exception as e:
+            log.error("%s: Error with SSML button: %s", self.__class__.__name__, e)
+
     def load_current_voice(self): 
         app_instance = App.get_running_app()
-        # print(f"API in main_screen: ", app_instance.api)
-        self.selected_voice = app_instance.global_settings.get_setting("ElevenLabsAPI", "voice","")
+        current_engine = self.get_current_tts_engine()
+
+        # Retrieve the current voice for the selected engine
+        self.selected_voice = api_factory.get_active_api().get_voice_name()
+        # Update the current voice display
+        self.ids.btn_select_voice.text = f"current voice:\n{self.selected_voice}"
 
     def update_current_voice(self, instance, value):
         self.selected_voice = value if value is not None else ""
+        self.ids.btn_select_voice.text = f"current voice:\n{self.selected_voice}"
 
     def on_menu_open(self):
         menu_items = [
@@ -110,12 +166,42 @@ class MainScreen(MDScreen):
     def exit_manager(self, *args):
         if all([self.last_path, self.opened_file]):
             file = os.path.join(self.last_path, self.opened_file)
-            self.load_textfile(file)
+            self.load_text_from_file(file)
         else:
             log.error("%s: No file selected. Last path: %s",
                       self.__class__.__name__, self.last_path)
         self.manager_open = False
         self.file_manager.close()
+
+    def docx_to_text(self, file_path):
+        text = ""
+        try:
+            text = docx2txt.process(file_path)
+        except Exception as e:
+            log.error("%s: Error reading DOCX file: %s. Exception: %s",
+                      self.__class__.__name__, file_path, e)
+        return text
+
+    def save_docx_text(self, file_path, text):
+        try:
+            # Open the existing document
+            document = Document(file_path)
+
+            # Overwrite content like in text file
+            for _ in range(len(document.paragraphs)):
+                p = document.paragraphs[0]
+                p._element.getparent().remove(p._element)
+
+            # Write text to document
+            for line in text.split('\n'):
+                document.add_paragraph(line)
+
+            # Save document
+            document.save(file_path)
+            log.info("%s: Saved DOCX file: %s", self.__class__.__name__, file_path)
+        except Exception as e:
+            log.error("%s: Error saving DOCX file: %s. Exception: %s",
+                      self.__class__.__name__, file_path, e)
 
     def on_load_file(self):
         if self.last_path is not None:
@@ -130,9 +216,16 @@ class MainScreen(MDScreen):
             log.error("%s: No file opened to save.", self.__class__.__name__)
             return
         file = os.path.join(self.last_path, self.opened_file)
-        self.save_textfile(file)
+        file_ext = os.path.splitext(file)[1][1:].lower()
 
-    def load_textfile(self, file: str):
+        if file_ext == "docx":
+            self.save_docx_text(file, self.ids.text_main.text)
+        elif file_ext == "pdf":
+            log.info("%s: Saving Pdfs not supported yet.", self.__class__.__name__)
+        else:
+            self.save_textfile(file)
+
+    def load_text_from_file(self, file: str):
         if file is None:
             log.error("%s: No file selected to load.", self.__class__.__name__)
             return
@@ -140,21 +233,28 @@ class MainScreen(MDScreen):
             log.error("%s: Selection is not a file: %s",
                       self.__class__.__name__, file)
             return
-        file_base, file_ext = os.path.splitext(file)
-        log.debug("%s: File: %s - Extension: %s",
-                  self.__class__.__name__, file_base, file_ext)
-        if file_ext[1:] not in self.supported_text_files:  # NOTE [1:] Skip the leading period
+        file_ext = os.path.splitext(file)[1][1:].lower()
+
+        if file_ext not in self.supported_text_files:
             log.error("%s: Unsupported file type: %s. Supported types: %s",
                       self.__class__.__name__, file_ext, self.supported_text_files)
             self.opened_file = None
             self.ids.text_main.text = ""
             return
-        # FIXME This is not handling file encoding properly and will cause issues with non-ASCII characters (e.g. mutated vowels such as á, é, í, ó, ú, etc.)
-        with open(os.path.abspath(file), 'r') as file:
-            text = file.read()
+
+        try:
+            if file_ext == "docx":
+                text = self.docx_to_text(file)
+            else:  # For txt, md, rst
+                with open(os.path.abspath(file), 'r') as f:
+                    text = f.read()
+
+            self.ids.text_main.text = text
             log.info("%s: Loaded file: %s", self.__class__.__name__, file)
             log.debug("%s: Text: %s...", self.__class__.__name__, text[0:40])
-            self.ids.text_main.text = text
+        except Exception as e:
+            log.error("%s: Error loading file: %s. Exception: %s",
+                      self.__class__.__name__, file, e)
 
     def save_textfile(self, file: str):
         if file is None:
@@ -164,43 +264,98 @@ class MainScreen(MDScreen):
             file.write(self.ids.text_main.text)
             log.info("%s: Saved file: %s", self.__class__.__name__, file)
 
+    def get_current_tts_engine(self):
+        # Retrieve the current TTS engine from global settings
+        app = App.get_running_app()
+        current_engine = app.global_settings.get_setting("TTS", "current_engine", default=api_factory.get_default_api_name())
+        api_factory.set_active_api_name(current_engine)
+        return current_engine
+
+    def update_current_engine_text(self):
+        # Update the property with the current engine text
+        self.current_engine_text = f"tts engine: \n{self.get_current_tts_engine()}"
+
+    def on_select_tts_engine(self):
+        api = api_factory.get_active_api()
+        available_engines = api_factory.get_apis_dict()
+
+        # Prepare menu items for each available TTS engine
+        menu_items = [
+            {
+                "text": engine_name,
+                "on_release": lambda x=engine_name: self.select_tts_engine(x),
+            } for engine_name in available_engines.keys()
+        ]
+
+        # Create and open the dropdown menu
+        self.engine_dropdown_menu = MDDropdownMenu(
+            caller=self.ids.btn_select_engine,
+            items=menu_items,
+            width_mult=4
+        )
+        self.engine_dropdown_menu.open()
+
+    def select_tts_engine(self, engine_name):
+        log.info("Selected TTS engine: %s", engine_name)
+
+        api_factory.set_active_api_name(engine_name)
+        self.ids.btn_select_engine.text = f"tts engine:\n{engine_name}"
+
+        # Retrieve the current voice for the selected engine
+        try:
+            self.selected_voice = api_factory.get_active_api().get_voice_name()
+        except Exception:
+            log.error("Getting current voice of selected API failed.")
+
+        # Update the current voice display
+        self.ids.btn_select_voice.text = f"current voice:\n{self.selected_voice}"
+
+        # Update the selected TTS engine in global settings or any relevant setting location
+        App.get_running_app().global_settings.update_setting("TTS", "current_engine", engine_name)
+
+        # Update the button text to display the selected engine
+        self.update_current_engine_text()
+
+        # Dismiss the dropdown menu
+        self.engine_dropdown_menu.dismiss()
+
     def on_select_voice(self):
         api = api_factory.get_active_api()
+        current_engine = self.get_current_tts_engine()
 
         if api:
             voice_names = api.get_available_voice_names()
             if voice_names:
-                # make list of menu-items for every voice
+                # Create dropdown menu items for each available voice
                 menu_items = [
                     {
-                        "text": voice_name,
+                        "text": voice_name,  # Display the formatted voice name
                         "on_release": lambda x=voice_name: self.select_voice(x),
                     } for voice_name in voice_names
                 ]
-                # make dropdown-menu with voice options
-                self.dropdown_menu = MDDropdownMenu(
-                    # this has to correspond with ID of button that selects the voices
+                # Create and open the dropdown menu for voice selection
+                self.voice_dropdown_menu = MDDropdownMenu(
                     caller=self.ids.btn_select_voice,
                     items=menu_items,
                     width_mult=4,
                 )
-                self.dropdown_menu.open()
+                self.voice_dropdown_menu.open()
             else:
-                log.error("%s: No voices available from API.",
-                          self.__class__.__name__)
+                log.error("%s: No voices available for the selected TTS engine.", self.__class__.__name__)
         else:
-            log.error("%s: API not available.", self.__class__.__name__)
+            log.error("%s: API not available for the selected TTS engine.", self.__class__.__name__)
 
     def select_voice(self, voice_name):
         # process selected voice names
         log.info("%s: Selected voice: %s", self.__class__.__name__, voice_name)
         api = api_factory.get_active_api()
+        current_engine = self.get_current_tts_engine()
         api.set_voice_name(voice_name)
 
         popup_window = CustomPopup(content_text=f"You selected the voice: \n{voice_name}",
                                    size_hint=(None, None), size=(400, 400))
         popup_window.open()
-        self.dropdown_menu.dismiss()
+        self.voice_dropdown_menu.dismiss()
 
     def on_play(self):
         # TODO Implement audio playback (this is mostly a placeholder without a backend implementation yet)

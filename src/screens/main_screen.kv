@@ -22,6 +22,21 @@
 
                 MDButton:
                     pos_hint: {"center_x": .5, "center_y": .5}
+                    id: btn_select_engine
+                    style: "elevated"
+                    height: "80dp"
+                    on_release: root.on_select_tts_engine()
+
+                    MDButtonIcon:
+                        icon: "engine-outline"
+                        theme_icon_color: "Custom"
+                        icon_color: self.theme_cls.onPrimaryContainerColor
+                    MDButtonText:
+                        text: root.current_engine_text
+                        theme_text_color: "Custom"
+                        text_color: self.theme_cls.onPrimaryContainerColor
+                MDButton:
+                    pos_hint: {"center_x": .5, "center_y": .5}
                     id: btn_select_voice
                     style: "elevated"
                     height: "80dp"
@@ -32,12 +47,12 @@
                         theme_icon_color: "Custom"
                         icon_color: self.theme_cls.onPrimaryContainerColor
                     MDButtonText:
-                        text: "current voice: \n    " + root.selected_voice
+                        text: "current voice: \n" + root.selected_voice
                         theme_text_color: "Custom"
                         text_color: self.theme_cls.onPrimaryContainerColor
 
             MDTopAppBarTitle:
-                text: root.title
+                #text: root.title
                 pos_hint: {"center_x": .5, "center_y": .5}
 
             MDTopAppBarTrailingButtonContainer:
@@ -54,12 +69,11 @@
                     style: "large"
                     on_release: root.on_save_file()
 
-
-
         MDScrollView:
             adaptive_height: True
             MDTextField:
                 id: text_main
+                font_name: "symbola"
                 mode: "filled"
                 multiline: True
                 size_hint_y: None
@@ -104,7 +118,11 @@
             MDTopAppBarTrailingButtonContainer:
                 spacing: "15dp"
                 padding: 0,0,80,10
-
+                MDFabButton:
+                    id: btn_ssml
+                    icon: "emoticon"
+                    style: "large"
+                    on_press: root.on_ssml_button_click()
                 MDFabButton:
                     id: btn_play
                     icon: "play-circle"
@@ -116,6 +134,122 @@
                     style: "large"
                     on_press: root.on_synthesize()
 
+<EmojiPopup>:
+    title: "Select an Emoji for SSML"
+    size_hint: None, None
+    size: 400, 500
+    auto_dismiss: True
+    background: ''  # Entferne das Standard-Hintergrundbild des Popups
+    background_color: 0.41, 0.41, 0.41, 1  # Setze die gesamte Hintergrundfarbe des Popups auf Grau (R, G, B, A)
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 20
+
+        Label:
+            size_hint_y: None
+            height: self.texture_size[1]
+            halign: 'center'
+            valign: 'middle'
+
+        GridLayout:
+            cols: 3
+            padding: [10, 0, 10, 10]  # padding links, oben, rechts, unten
+            spacing: 10
+            size_hint: None, None
+            size: 360, 360  # passt das GridLayout für die Buttons an
+            pos_hint: {"center_x": 0.5}  # Zentriere das GridLayout horizontal
+
+            Button:
+                text: "⏸️"
+                font_name: "symbola"
+                font_size: '40sp'
+                size_hint: None, None
+                size: 100, 100
+                color: 0, 0, 0, 1
+                background_normal: ''
+                on_release: root.insert_emoji("⏸️")
+
+            Button:
+                text: "😐"
+                font_name: "symbola"
+                font_size: '40sp'
+                size_hint: None, None
+                size: 100, 100
+                color: 0, 0, 0, 1
+                background_normal: ''
+                on_release: root.insert_emoji("😐")
+
+            Button:
+                text: "🙂"
+                font_name: "symbola"
+                font_size: '40sp'
+                size_hint: None, None
+                size: 100, 100
+                color: 0, 0, 0, 1
+                background_normal: ''
+                on_release: root.insert_emoji("🙂")
+
+            Button:
+                text: "😁"
+                font_name: "symbola"
+                font_size: '40sp'
+                size_hint: None, None
+                size: 100, 100
+                color: 0, 0, 0, 1
+                background_normal: ''
+                on_release: root.insert_emoji("😁")
+
+            Button:
+                text: "🔈"
+                font_name: "symbola"
+                font_size: '40sp'
+                size_hint: None, None
+                size: 100, 100
+                color: 0, 0, 0, 1
+                background_normal: ''
+                on_release: root.insert_emoji("🔈")
+
+            Button:
+                text: "🔉"
+                font_name: "symbola"
+                font_size: '40sp'
+                size_hint: None, None
+                size: 100, 100
+                color: 0, 0, 0, 1
+                background_normal: ''
+                on_release: root.insert_emoji("🔉")
+
+            Button:
+                text: "🔊"
+                font_name: "symbola"
+                font_size: '40sp'
+                size_hint: None, None
+                size: 100, 100
+                color: 0, 0, 0, 1
+                background_normal: ''
+                on_release: root.insert_emoji("🔊")
+
+            Button:
+                text: "🌏"
+                font_name: "symbola"
+                font_size: '40sp'
+                size_hint: None, None
+                size: 100, 100
+                color: 0, 0, 0, 1
+                background_normal: ''
+                on_release: root.insert_emoji("🌏")
+
+            Button:
+                text: ""
+                font_name: "symbola"
+                font_size: '40sp'
+                size_hint: None, None
+                size: 100, 100
+                color: 0, 0, 0, 1
+                background_normal: ''
+                on_release: root.insert_emoji("")
 
 <Popups>:
     Label:
@@ -135,7 +269,7 @@
     BoxLayout:
         orientation: "vertical"
         padding: 0, 10, 10, 10
-        spacing: 10 
+        spacing: 10
         border: 50
         border_color: (1,1,1,1)
         canvas.before:
