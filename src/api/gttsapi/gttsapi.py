@@ -76,13 +76,13 @@ class GttsAPISettings(BaseApiSettings):
             self.api_name, "voice", default=""
         )
         matching_voice = next(
-            (v["display_name"] for v in GttsAPI.voices if v["internal_name"] == self.voice_text),
+            (v["display_name"] for v in GttsAPI.voices if v["display_name"] == self.voice_text),
             None
         )
         if matching_voice:
             self.widget.voice_selection.text = matching_voice
         else:
-            log.warning(f"No matching display_name for internal_name: {self.voice_text}")
+            log.warning(f"No matching voice for display_name: {self.voice_text}")
 
     def save_settings(self):
         app_instance = App.get_running_app()
@@ -90,17 +90,7 @@ class GttsAPISettings(BaseApiSettings):
             self.api_name, "voice", self.voice_text)
 
     def update_settings(self, instance, value):
-        # Suche den internal_name für den ausgewählten display_name
-        selected_voice = next(
-            (v for v in GttsAPI.voices if v["display_name"] == self.widget.voice_selection.text),
-            None
-        )
-        if selected_voice:
-            self.voice_text = selected_voice["internal_name"]
-            log.info(f"Saved internal_name: {self.voice_text}")
-        else:
-            log.error(f"Voice not found for display name: {self.widget.voice_selection.text}")
-
+        self.voice_text = value
 
 class GttsAPI(BaseApi):
     voices = []
