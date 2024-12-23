@@ -1,5 +1,6 @@
 from typing import List
 
+import select
 from gtts import gTTS
 import logging as log
 from kivymd.uix.screen import MDScreen
@@ -119,8 +120,10 @@ class GttsAPI(BaseApi):
     def __init__(self, settings: GttsAPISettings):
         super(GttsAPI, self).__init__(settings)
         self.settings = settings
+        self.init_api()
 
     def init_api(self):
+        self.settings.load_settings()
         pass
 
     def reset_api(self):
@@ -144,15 +147,15 @@ class GttsAPI(BaseApi):
             (v for v in self.voices if v["display_name"] == display_name), None
         )
         if selected_voice:
-            self.settings.voice_text = selected_voice["internal_name"]
-            self.settings.save_settings()
             log.info(f"Voice set to: {display_name}")
+            self.settings.voice_text = selected_voice["display_name"]
+            self.settings.save_settings()
         else:
             log.error("Voice not found for display name: %s", display_name)
 
     def get_voice_name(self):
         selected_voice = self.__get_selected_voice()
-        return selected_voice["display_name"]
+        return selected_voice["display_name"] if selected_voice != None else ""
 
     def synthesize(self, input_text: str, out_filename: str):
         if not input_text:
@@ -178,6 +181,6 @@ class GttsAPI(BaseApi):
 
     def __get_selected_voice(self):
         selected_voice = next(
-            (v for v in self.voices if v['internal_name'] == self.settings.voice_text), None
+            (v for v in self.voices if v['display_name'] == self.settings.voice_text), None
         )
         return selected_voice
