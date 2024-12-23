@@ -57,7 +57,7 @@ from api.api_factory import api_factory
 
 class MainScreen(MDScreen):
     title = StringProperty()
-    current_engine_text = StringProperty("tts engine: \nElevenLabsAPI")
+    current_engine_text = StringProperty("tts engine: \n")
     text_input = ObjectProperty(None)
     text_type = StringProperty("text")
     voice_dialog = None
@@ -116,8 +116,11 @@ class MainScreen(MDScreen):
     def load_current_voice(self): 
         app_instance = App.get_running_app()
         current_engine = self.get_current_tts_engine()
-        # print(f"API in main_screen: ", app_instance.api)
-        self.selected_voice = app_instance.global_settings.get_setting("ElevenLabsAPI", "voice","")
+
+        # Retrieve the current voice for the selected engine
+        self.selected_voice = api_factory.get_active_api().get_voice_name()
+        # Update the current voice display
+        self.ids.btn_select_voice.text = f"current voice:\n{self.selected_voice}"
 
     def update_current_voice(self, instance, value):
         self.selected_voice = value if value is not None else ""
@@ -274,9 +277,7 @@ class MainScreen(MDScreen):
 
     def on_select_tts_engine(self):
         api = api_factory.get_active_api()
-        available_engines = {
-            api_factory.get_active_api_name(): api_factory.get_active_api()
-        }
+        available_engines = api_factory.get_apis_dict()
 
         # Prepare menu items for each available TTS engine
         menu_items = [
