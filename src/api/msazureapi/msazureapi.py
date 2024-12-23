@@ -44,15 +44,18 @@ class MSAzureAPIWidget(MDScreen):
             log.error("Microsoft Azure API key invalid.")
 
     def __check_azure_api_key(self):
-        speech_config = speechsdk.SpeechConfig(
-            subscription=self.settings.api_key_text,
-            region=self.settings.region_text
-        )
-        voices_result = speechsdk.VoicesListResult(speech_config)
-        if not voices_result:
+        try:
+            speech_config = speechsdk.SpeechConfig(
+                subscription=self.settings.api_key_text,
+                region=self.settings.region_text
+            )
+            voices_result = speechsdk.VoicesListResult(speech_config)
+            if not voices_result:
+                return False
+            return True
+        except Exception:
+            log.error(f"API initialization failed")
             return False
-        return True
-
 
 class CustomSpinner(Button):
     def __init__(self, options, **kwargs):

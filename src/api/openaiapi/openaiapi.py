@@ -47,10 +47,16 @@ class OpenAIAPIWidget(MDScreen):
             log.error("OpenAI API key invalid.")
 
     def __check_openai_api_key(self):
-        client = openai.OpenAI(api_key=self.api_key_input.text)
         try:
+            client = openai.OpenAI(api_key=self.api_key_input.text)
+            print(f"API KEY: {self.api_key_input}")
+
             client.models.list()
-        except openai.AuthenticationError:
+        except openai.AuthenticationError as oae:
+            log.error(f"OpenAI API key error: {oae}")
+            return False
+        except Exception as e:
+            log.error(f"OpenAI initialization error: {e}")
             return False
         else:
             return True
