@@ -19,8 +19,10 @@ jobs:
         sparse-checkout: |
           .github
           src
+          fonts
           pyproject.toml
           poetry.lock
+          speech-jokey.ico
 
     - name: Execute script to .exe in Windows
       run: ".github/scripts/windows/build_exe_onefile.ps1"
