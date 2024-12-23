@@ -25,7 +25,8 @@ $env:KIVY_GL_BACKEND = 'angle_sdl2'
 # Install dependencies with Poetry
 Write-Output 'INFO: Installing dependencies with Poetry'
 poetry config virtualenvs.create false
-poetry install --only main --no-root
+#poetry install --only main --no-root
+poetry install --no-root
 
 # Create SpeechJokey.spec file
 $Target = 'SpeechJokey'
@@ -40,7 +41,7 @@ Copy-Item ".github/static/speech-jokey.ico" -Destination "."
 
 # Build the executable using PyInstaller
 Write-Output 'INFO: Building executable with PyInstaller'
-poetry run pyinstaller $TargetSpecFile --log-level=ERROR --clean --noconfirm
+poetry run pyinstaller $TargetSpecFile --log-level=DEBUG --clean --noconfirm
 
 # Check for build success and output location
 if (Test-Path "dist\$Target") {
