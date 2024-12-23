@@ -302,7 +302,10 @@ class MainScreen(MDScreen):
         self.ids.btn_select_engine.text = f"tts engine:\n{engine_name}"
 
         # Retrieve the current voice for the selected engine
-        self.selected_voice = api_factory.get_active_api().get_voice_name()
+        try:
+            self.selected_voice = api_factory.get_active_api().get_voice_name()
+        except Exception:
+            log.error("Getting current voice of selected API failed.")
 
         # Update the current voice display
         self.ids.btn_select_voice.text = f"current voice:\n{self.selected_voice}"
