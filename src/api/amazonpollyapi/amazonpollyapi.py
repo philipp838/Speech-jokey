@@ -183,9 +183,13 @@ class AmazonPollyAPI(BaseApi):
     def __init__(self, settings: AmazonPollyAPISettings):
         super(AmazonPollyAPI, self).__init__(settings)
         self.settings = settings
-        self.init_api()
+        self.reset_api()
 
     def init_api(self):
+        if self.session != None and self.polly_client != None:
+            # Return, if we are already initialized
+            return
+
         # Load settings if needed for other configurations
         self.settings.load_settings()
 
@@ -204,8 +208,8 @@ class AmazonPollyAPI(BaseApi):
         self.polly_client = self.session.client("polly")
 
     def reset_api(self):
-        self.voices = []
-        self.settings.widget.voice_names = []
+        self.session=None
+        self.polly_client=None
 
     def get_available_model_names(self):
         return []
@@ -250,6 +254,9 @@ class AmazonPollyAPI(BaseApi):
 
     def synthesize(self, input_text: str, out_filename: str):
         try:
+            # First ensure that API is initialized
+            self.init_api()
+
             # Perform SSML conversion
             processed_text = self.emoji_to_ssml_tag(input_text, self.ssml_tags)
 

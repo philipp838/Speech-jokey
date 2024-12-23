@@ -117,10 +117,13 @@ class MainScreen(MDScreen):
         app_instance = App.get_running_app()
         current_engine = self.get_current_tts_engine()
 
-        # Retrieve the current voice for the selected engine
-        self.selected_voice = api_factory.get_active_api().get_voice_name()
-        # Update the current voice display
-        self.ids.btn_select_voice.text = f"current voice:\n{self.selected_voice}"
+        try:
+            # Retrieve the current voice for the selected engine
+            self.selected_voice = api_factory.get_active_api().get_voice_name()
+            # Update the current voice display
+            self.ids.btn_select_voice.text = f"current voice:\n{self.selected_voice}"
+        except:
+            log.error(f"Could not retrieve set voice name of current TTS engine {current_engine}")
 
     def update_current_voice(self, instance, value):
         self.selected_voice = value if value is not None else ""
