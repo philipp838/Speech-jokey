@@ -1,30 +1,25 @@
 # Kivy
 from kivy.uix.floatlayout import FloatLayout
+import time
+
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.properties import ObjectProperty, StringProperty
-from kivy.core.text import LabelBase
 from kivy.logger import Logger as log
 # KivyMD
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.filemanager import MDFileManager
+from kivymd.uix.dialog import MDDialog
 from kivy.uix.popup import Popup
 # stdlib
 import os
-import time
+import sys
 # Custom
 from modules.dialog.exitdialog import ExitDialog
-# Pdf and .docx to text conversion
-import fitz  # PyMuPDF
+# .docx to text conversion
 import docx2txt
 from docx import Document
-# Audio playback
-from pygame import mixer
-
-# Register fonts
-font_path = os.path.join(os.path.dirname(__file__), "../../fonts/Symbola.ttf")
-LabelBase.register(name="symbola", fn_regular=font_path)
 
 
 class EmojiPopup(Popup):
@@ -45,9 +40,9 @@ class EmojiPopup(Popup):
         # Text before and after cursor position
         current_text = self.text_input.text
         new_text = (
-            current_text[:cursor_index] +  # Text in front of cursor
-            emoji +                        # The emoji to be inserted
-            current_text[cursor_index:]    # Text after cursor
+                current_text[:cursor_index] +  # Text in front of cursor
+                emoji +  # The emoji to be inserted
+                current_text[cursor_index:]  # Text after cursor
         )
 
         # Set the new text in the TextInput
@@ -59,9 +54,12 @@ class EmojiPopup(Popup):
         self.dismiss()
 
 
+from api.api_factory import api_factory
+
+
 class MainScreen(MDScreen):
     title = StringProperty()
-    current_engine_text = StringProperty("tts engine: \nElevenLabs")
+    current_engine_text = StringProperty("tts engine: \nElevenLabsAPI")
     text_input = ObjectProperty(None)
     text_type = StringProperty("text")
     voice_dialog = None
@@ -82,7 +80,7 @@ class MainScreen(MDScreen):
         "🔊": ("<prosody volume=\"loud\">", "</prosody>"),
         "🌏": ("<lang xml:lang=\"en-US\">", "</lang>")
     }
-    supported_text_files = ["txt", "md", "rst", "pdf", "docx"]
+    supported_text_files = ["txt", "md", "rst", "docx"]
 
     def __init__(self, title: str, **kwargs):
         super(MainScreen, self).__init__(**kwargs)
@@ -91,12 +89,6 @@ class MainScreen(MDScreen):
         self.update_current_engine_text()
         self.last_path = None
         self.opened_file = None
-
-        # Bind each TTS API's voice setting to automatically update the selected_voice on change
-        app = App.get_running_app()
-        if hasattr(app, 'api_elevenlabs'):
-            app.api_elevenlabs.settings.bind(voice_text=self.update_current_voice)
-
         # FIXME This is used to keep track of the file manager state (open or closed) but is not currently used
         self.manager_open = False
         self.file_manager = MDFileManager(
@@ -112,45 +104,7 @@ class MainScreen(MDScreen):
         self.old_cursor_index = self.ids.text_main.cursor_index()
         Clock.schedule_once(self.set_focus, 0.1)
         self.load_current_voice()
-
-    def amazon_emoji_to_ssml_tag(self, text):
-        """
-        Convert emojis in the text to Polly-compatible SSML tags.
-        """
-        ssml_text = "<speak>"
-        for emoji, tags in self.ssml_tags.items():
-            open_tag, close_tag = tags
-            if close_tag:  # For emojis with both open and close tags
-                text = text.replace(emoji, open_tag, 1)  # First occurrence as open tag
-                text = text.replace(emoji, close_tag, 1)  # Next occurrence as close tag
-            else:  # For self-closing tags
-                text = text.replace(emoji, open_tag)
-        ssml_text += text + "</speak>"
-
-        return ssml_text
-
-    def msazure_emoji_to_ssml_tag(self, text):
-        """
-        Convert emojis in the text to Azure-compatible SSML tags.
-        """
-        app = App.get_running_app()
-        api = app.api_msazure
-        voice = api.settings.voice_text
-
-        app.api_msazure.set_language()
-        lang = api.settings.lang_text
-
-        ssml_text = f"<speak version='1.0' xml:lang='{lang}'><voice name='{voice}'>"
-        for emoji, tags in self.ssml_tags.items():
-            open_tag, close_tag = tags
-            if close_tag:  # For emojis with both open and close tags
-                text = text.replace(emoji, open_tag, 1)  # Replace first occurrence with open tag
-                text = text.replace(emoji, close_tag, 1)  # Replace next occurrence with close tag
-            else:  # For self-closing tags
-                text = text.replace(emoji, open_tag)
-        ssml_text += text + "</voice></speak>"
-
-        return ssml_text
+        api_factory.get_active_api().settings.bind(voice_text=self.update_current_voice)
 
     def on_ssml_button_click(self):
         try:
@@ -163,12 +117,8 @@ class MainScreen(MDScreen):
     def load_current_voice(self):
         app_instance = App.get_running_app()
         current_engine = self.get_current_tts_engine()
-
-        # Retrieve the default voice for the selected engine from global settings
-        if current_engine == "ElevenLabs":
-            self.selected_voice = app_instance.global_settings.get_setting("ElevenLabsAPI", "voice", default="Serena")
-        else:
-            self.selected_voice = ""  # Fallback if no engine is set
+        # print(f"API in main_screen: ", app_instance.api)
+        self.selected_voice = app_instance.global_settings.get_setting("ElevenLabsAPI", "voice", "")
 
     def update_current_voice(self, instance, value):
         self.selected_voice = value if value is not None else ""
@@ -220,19 +170,6 @@ class MainScreen(MDScreen):
                       self.__class__.__name__, self.last_path)
         self.manager_open = False
         self.file_manager.close()
-
-    def pdf_to_text(self, file_path):
-        text = ""
-        try:
-            pdf_document = fitz.open(file_path)
-            for page_num in range(pdf_document.page_count):
-                page = pdf_document.load_page(page_num)
-                text += page.get_text()
-            pdf_document.close()
-        except Exception as e:
-            log.error("%s: Error reading PDF file: %s. Exception: %s",
-                      self.__class__.__name__, file_path, e)
-        return text
 
     def docx_to_text(self, file_path):
         text = ""
@@ -304,9 +241,7 @@ class MainScreen(MDScreen):
             return
 
         try:
-            if file_ext == "pdf":
-                text = self.pdf_to_text(file)
-            elif file_ext == "docx":
+            if file_ext == "docx":
                 text = self.docx_to_text(file)
             else:  # For txt, md, rst
                 with open(os.path.abspath(file), 'r') as f:
@@ -330,7 +265,9 @@ class MainScreen(MDScreen):
     def get_current_tts_engine(self):
         # Retrieve the current TTS engine from global settings
         app = App.get_running_app()
-        current_engine = app.global_settings.get_setting("TTS", "current_engine", default="ElevenLabs")
+        current_engine = app.global_settings.get_setting("TTS", "current_engine",
+                                                         default=api_factory.get_default_api_name())
+        api_factory.set_active_api_name(current_engine)
         return current_engine
 
     def update_current_engine_text(self):
@@ -338,10 +275,8 @@ class MainScreen(MDScreen):
         self.current_engine_text = f"tts engine: \n{self.get_current_tts_engine()}"
 
     def on_select_tts_engine(self):
-        app = App.get_running_app()
-        available_engines = {
-            "ElevenLabs": app.api_elevenlabs,
-        }
+        api = api_factory.get_active_api()
+        available_engines = api_factory.get_apis_dict()
 
         # Prepare menu items for each available TTS engine
         menu_items = [
@@ -361,22 +296,18 @@ class MainScreen(MDScreen):
 
     def select_tts_engine(self, engine_name):
         log.info("Selected TTS engine: %s", engine_name)
-        app = App.get_running_app()
 
-        self.selected_engine = engine_name
+        api_factory.set_active_api_name(engine_name)
         self.ids.btn_select_engine.text = f"tts engine:\n{engine_name}"
 
         # Retrieve the current voice for the selected engine
-        if engine_name == "ElevenLabs":
-            self.selected_voice = app.api_elevenlabs.settings.voice_text
-        else:
-            self.selected_voice = "N/A"
+        self.selected_voice = api_factory.get_active_api().get_voice_name()
 
         # Update the current voice display
         self.ids.btn_select_voice.text = f"current voice:\n{self.selected_voice}"
 
         # Update the selected TTS engine in global settings or any relevant setting location
-        app.global_settings.update_setting("TTS", "current_engine", engine_name)
+        App.get_running_app().global_settings.update_setting("TTS", "current_engine", engine_name)
 
         # Update the button text to display the selected engine
         self.update_current_engine_text()
@@ -385,19 +316,11 @@ class MainScreen(MDScreen):
         self.engine_dropdown_menu.dismiss()
 
     def on_select_voice(self):
-        app = App.get_running_app()
+        api = api_factory.get_active_api()
         current_engine = self.get_current_tts_engine()
 
-        # Determine which API to use based on the current engine
-        if current_engine == "ElevenLabs":
-            api = app.api_elevenlabs
-        else:
-            log.error("Unknown TTS engine selected.")
-            return
-
-        # Get available voices from the selected API
         if api:
-            voice_names = api.get_available_voices()
+            voice_names = api.get_available_voice_names()
             if voice_names:
                 # Create dropdown menu items for each available voice
                 menu_items = [
@@ -419,83 +342,54 @@ class MainScreen(MDScreen):
             log.error("%s: API not available for the selected TTS engine.", self.__class__.__name__)
 
     def select_voice(self, voice_name):
-        log.info("Selected voice: %s", voice_name)
+        # process selected voice names
+        log.info("%s: Selected voice: %s", self.__class__.__name__, voice_name)
+        api = api_factory.get_active_api()
         current_engine = self.get_current_tts_engine()
-        app = App.get_running_app()
+        api.set_voice_name(voice_name)
 
-        # Update the selected voice in the appropriate API's settings
-        if current_engine == "ElevenLabs":
-            app.api_elevenlabs.set_voice(voice_name)
-
-        # Update displayed selected voice
-        self.selected_voice = voice_name
+        popup_window = CustomPopup(content_text=f"You selected the voice: \n{voice_name}",
+                                   size_hint=(None, None), size=(400, 400))
+        popup_window.open()
         self.voice_dropdown_menu.dismiss()
 
-        popup_content = Popups(voice_name=voice_name)
-        popup_window = Popup(title="Voice Selection",
-                             content=popup_content,
-                             size_hint=(0.6, 0.4),
-                             auto_dismiss=True)
-        popup_window.open()
-
-    def on_synthesize(self):
-        current_engine = self.get_current_tts_engine()
-
-        # Check the selected engine and call the respective synthesis method
-        if current_engine == "ElevenLabs":
-            self.on_synthesize_elevenlabs()
-        else:
-            log.error("No valid TTS engine selected.")
-
-    def on_synthesize_elevenlabs(self):
-        # TODO Implement text to speech synthesis (this is mostly a placeholder without a backend implementation yet)
-        api = App.get_running_app().api_elevenlabs
-        tmp_dir = App.get_running_app().global_settings.get_tmp_dir()
-        file_path = os.path.join(tmp_dir, 'output_file.wav')
-        log.info(f"Using file_path={file_path}")
-
+    def on_play(self):
+        # TODO Implement audio playback (this is mostly a placeholder without a backend implementation yet)
+        api = api_factory.get_active_api()
         if api:
             try:
+                api.play()
+            except NotImplementedError:
+                log.error(
+                    "%s: Audio playback not implemented for this API.", self.__class__.__name__)
+            except Exception as e:
+                log.error("%s: Error during playback: %s",
+                          self.__class__.__name__, e)
+
+    def on_synthesize(self):
+        # TODO Implement text to speech synthesis (this is mostly a placeholder without a backend implementation yet)
+        api = api_factory.get_active_api()
+        tmp_dir = App.get_running_app().global_settings.get_tmp_dir()
+        synthesized_file = os.path.join(tmp_dir, 'output_file.wav')
+        log.info(f"Using synthesized_file={synthesized_file}")
+
+        if api:
+            msg = f"Text has been synthesized\nto an audio file"
+            try:
                 # FIXME: Use constant or configurable output path
-                api.synthesize(self.ids.text_main.text, file_path)
+                api.synthesize(self.ids.text_main.text, synthesized_file)
             except NotImplementedError:
                 msg = "Text to speech synthesis not implemented for this API."
                 log.error("%s: %s", self.__class__.__name__, msg)
-                self.ids.label_status.text = msg
+
             except Exception as e:
-                msg = "Error during synthesis"
+                msg = "Error during synthesis: \n" + str(e)
                 log.error("%s: %s: %s", self.__class__.__name__, msg, e)
-                self.ids.label_status.text = msg
-        popup_window = CustomPopup(content_text=f"Text has been synthesized\nto an audio file",
-                                   size_hint=(None, None), size=(400, 400))
-        popup_window.open()
 
-    def play(self, audio_dir):
-        try:
-            mixer.init()
-            mixer.music.load(audio_dir)
-            mixer.music.play()
-            # wait for music to finish playing
-            while mixer.music.get_busy():
-                time.sleep(1)
-            mixer.music.unload()
-        except Exception as e:
-            log.error("%s: Error playing audio: %s", self.__class__.__name__, e)
-
-    def on_play(self):
-        tmp_dir = App.get_running_app().global_settings.get_tmp_dir()
-        current_engine = self.get_current_tts_engine()
-
-        # Check the selected engine and call the respective play function
-        if current_engine == "ElevenLabs":
-            audio_dir = os.path.join(tmp_dir, 'elevenlab_output.wav')
-        else:
-            log.error("No valid TTS engine selected.")
-
-        if os.path.exists(audio_dir):
-            self.play(audio_dir)
-        else:
-            self.ids.label_status.text = "Synthesized audio not found."
+            self.ids.label_status.text = msg
+            popup_window = CustomPopup(content_text=msg,
+                                       size_hint=(None, None), size=(400, 400))
+            popup_window.open()
 
     def on_cursor_control(self):
         new_cursor_index = self.ids.text_main.cursor_index()
