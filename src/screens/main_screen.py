@@ -429,6 +429,10 @@ class MainScreen(MDScreen):
 
         # Update displayed selected voice
         self.selected_voice = voice_name
+
+        popup_window = CustomPopup(content_text=f"You selected the voice: \n{voice_name}",
+                                   size_hint=(None, None), size=(400, 400))
+        popup_window.open()
         self.voice_dropdown_menu.dismiss()
 
 
@@ -449,20 +453,22 @@ class MainScreen(MDScreen):
         log.info(f"Using file_path={file_path}")
 
         if api:
+            msg = f"Text has been synthesized\nto an audio file"
             try:
                 # FIXME: Use constant or configurable output path
-                api.synthesize(self.ids.text_main.text, file_path)
+                api.synthesize(self.ids.text_main.text, synthesized_file)
             except NotImplementedError:
                 msg = "Text to speech synthesis not implemented for this API."
                 log.error("%s: %s", self.__class__.__name__, msg)
-                self.ids.label_status.text = msg
+
             except Exception as e:
-                msg = "Error during synthesis"
+                msg = "Error during synthesis: \n" + str(e)
                 log.error("%s: %s: %s", self.__class__.__name__, msg, e)
-                self.ids.label_status.text = msg
-        popup_window = CustomPopup(content_text=f"Text has been synthesized\nto an audio file",
-                                   size_hint=(None, None), size=(400, 400))
-        popup_window.open()
+
+            self.ids.label_status.text = msg
+            popup_window = CustomPopup(content_text=msg,
+                                       size_hint=(None, None), size=(400, 400))
+            popup_window.open()
 
     def play(self, audio_dir):
         try:
