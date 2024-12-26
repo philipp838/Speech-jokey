@@ -21,6 +21,7 @@ from modules.dialog.exitdialog import ExitDialog
 import docx2txt
 from docx import Document
 
+
 class EmojiPopup(Popup):
     def __init__(self, text_input, **kwargs):
         super(EmojiPopup, self).__init__(**kwargs)
@@ -39,9 +40,9 @@ class EmojiPopup(Popup):
         # Text before and after cursor position
         current_text = self.text_input.text
         new_text = (
-            current_text[:cursor_index] +  # Text in front of cursor
-            emoji +                        # The emoji to be inserted
-            current_text[cursor_index:]    # Text after cursor
+                current_text[:cursor_index] +  # Text in front of cursor
+                emoji +  # The emoji to be inserted
+                current_text[cursor_index:]  # Text after cursor
         )
 
         # Set the new text in the TextInput
@@ -51,6 +52,7 @@ class EmojiPopup(Popup):
         self.text_input.cursor = (cursor_index + len(emoji), 0)
 
         self.dismiss()
+
 
 from api.api_factory import api_factory
 
@@ -104,7 +106,6 @@ class MainScreen(MDScreen):
         self.load_current_voice()
         api_factory.get_active_api().settings.bind(voice_text=self.update_current_voice)
 
-
     def on_ssml_button_click(self):
         try:
             log.debug("%s: SSML button pressed", self.__class__.__name__)
@@ -113,7 +114,7 @@ class MainScreen(MDScreen):
         except Exception as e:
             log.error("%s: Error with SSML button: %s", self.__class__.__name__, e)
 
-    def load_current_voice(self): 
+    def load_current_voice(self):
         app_instance = App.get_running_app()
         current_engine = self.get_current_tts_engine()
 
@@ -267,7 +268,8 @@ class MainScreen(MDScreen):
     def get_current_tts_engine(self):
         # Retrieve the current TTS engine from global settings
         app = App.get_running_app()
-        current_engine = app.global_settings.get_setting("TTS", "current_engine", default=api_factory.get_default_api_name())
+        current_engine = app.global_settings.get_setting("TTS", "current_engine",
+                                                         default=api_factory.get_default_api_name())
         api_factory.set_active_api_name(current_engine)
         return current_engine
 
@@ -378,7 +380,7 @@ class MainScreen(MDScreen):
         log.info(f"Using synthesized_file={synthesized_file}")
 
         if api:
-            msg=f"Text has been synthesized\nto an audio file"
+            msg = f"Text has been synthesized\nto an audio file"
             try:
                 # FIXME: Use constant or configurable output path
                 api.synthesize(self.ids.text_main.text, synthesized_file)
@@ -387,7 +389,7 @@ class MainScreen(MDScreen):
                 log.error("%s: %s", self.__class__.__name__, msg)
 
             except Exception as e:
-                msg = "Error during synthesis: \n"+str(e)
+                msg = "Error during synthesis: \n" + str(e)
                 log.error("%s: %s: %s", self.__class__.__name__, msg, e)
 
             self.ids.label_status.text = msg
@@ -440,7 +442,8 @@ class MainScreen(MDScreen):
 
     def set_focus(self, dt):
         self.ids.text_main.focus = True
-        
+
+
 class CustomPopup(Popup):
     content_text = StringProperty("")
 
