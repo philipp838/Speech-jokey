@@ -396,9 +396,6 @@ class MainScreen(MDScreen):
                 log.error("%s: Error during playback: %s",
                           self.__class__.__name__, e)
 
-    def on_pause(self):
-        pass
-
     def on_synthesize(self):
         # TODO Implement text to speech synthesis (this is mostly a placeholder without a backend implementation yet)
         api = api_factory.get_active_api()
