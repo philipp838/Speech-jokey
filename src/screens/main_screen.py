@@ -84,6 +84,7 @@ class MainScreen(MDScreen):
     def __init__(self, title: str, **kwargs):
         super(MainScreen, self).__init__(**kwargs)
         self.title = title
+        self.ids.text_main.font_size = 24
         self.original_font_size = self.ids.text_main.font_size
         # Initialize the current TTS engine text
         self.update_current_engine_text()
