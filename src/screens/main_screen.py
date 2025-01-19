@@ -243,7 +243,7 @@ class MainScreen(MDScreen):
             if file_ext == "docx":
                 text = self.docx_to_text(file)
             else:  # For txt, md, rst
-                with open(os.path.abspath(file), 'r') as f:
+                with open(os.path.abspath(file), 'r', encoding='utf-8') as f:
                     text = f.read()
 
             self.ids.text_main.text = text
