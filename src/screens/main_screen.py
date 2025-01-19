@@ -227,8 +227,7 @@ class MainScreen(MDScreen):
             log.error("%s: No file selected to load.", self.__class__.__name__)
             return
         if not os.path.isfile(file):
-            log.error("%s: Selection is not a file: %s",
-                      self.__class__.__name__, file)
+            log.error("%s: Selection is not a file: %s", self.__class__.__name__, file)
             return
         file_ext = os.path.splitext(file)[1][1:].lower()
 
@@ -243,15 +242,19 @@ class MainScreen(MDScreen):
             if file_ext == "docx":
                 text = self.docx_to_text(file)
             else:  # For txt, md, rst
-                with open(os.path.abspath(file), 'r', encoding='utf-8') as f:
-                    text = f.read()
+                try:
+                    with open(os.path.abspath(file), 'r', encoding='utf-8') as f:
+                        text = f.read()
+                except UnicodeDecodeError:
+                    log.warning("%s: UTF-8 decoding failed. Trying ISO-8859-1.", self.__class__.__name__)
+                    with open(os.path.abspath(file), 'r', encoding='iso-8859-1') as f:
+                        text = f.read()
 
             self.ids.text_main.text = text
             log.info("%s: Loaded file: %s", self.__class__.__name__, file)
             log.debug("%s: Text: %s...", self.__class__.__name__, text[0:40])
         except Exception as e:
-            log.error("%s: Error loading file: %s. Exception: %s",
-                      self.__class__.__name__, file, e)
+            log.error("%s: Error loading file: %s. Exception: %s", self.__class__.__name__, file, e)
 
     def save_textfile(self, file: str):
         if file is None:
