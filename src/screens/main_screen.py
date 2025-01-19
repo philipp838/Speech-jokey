@@ -83,6 +83,7 @@ class MainScreen(MDScreen):
     def __init__(self, title: str, **kwargs):
         super(MainScreen, self).__init__(**kwargs)
         self.title = title
+        self.original_font_size = self.ids.text_main.font_size
         # Initialize the current TTS engine text
         self.update_current_engine_text()
         self.last_path = None
@@ -104,6 +105,29 @@ class MainScreen(MDScreen):
         self.load_current_voice()
         api_factory.get_active_api().settings.bind(voice_text=self.update_current_voice)
 
+    def change_text_size(self):
+        try:
+            # Access the current font size
+            current_font_size = self.ids.text_main.font_size
+
+            # Define the maximum and original font size
+            max_font_size = 48
+
+            # Toggle between increasing and resetting the font size
+            if current_font_size < max_font_size:
+                # Increase the font size
+                new_font_size = min(max_font_size, current_font_size + 2)
+            else:
+                # Reset to the original font size
+                new_font_size = self.original_font_size
+
+            # Apply the new font size
+            self.ids.text_main.font_size = new_font_size
+
+            # Log the change
+            log.info(f"Text size changed to {new_font_size}")
+        except Exception as e:
+            log.error(f"Error changing text size: {e}")
 
     def on_ssml_button_click(self):
         try:
