@@ -368,11 +368,25 @@ class MainScreen(MDScreen):
         self.voice_dropdown_menu.dismiss()
 
     def on_play(self):
-        # TODO Implement audio playback (this is mostly a placeholder without a backend implementation yet)
         api = api_factory.get_active_api()
+        tmp_dir = App.get_running_app().global_settings.get_tmp_dir()
         if api:
             try:
-                api.play()
+                # Retrieve list of all files in the tmp directory
+                files = [os.path.join(tmp_dir, f) for f in os.listdir(tmp_dir) if f.endswith(".wav")]
+
+                if not files:
+                    log.error("No audio files found in tmp directory.")
+                    msg = "No audio files found to play."
+                    self.ids.label_status.text = msg
+                    popup_window = CustomPopup(content_text=msg, size_hint=(None, None), size=(400, 400))
+                    popup_window.open()
+                    return
+
+                # Select latest file based on modification date
+                latest_file = max(files, key=os.path.getmtime)
+
+                api.play(os.path.basename(latest_file))
             except NotImplementedError:
                 log.error(
                     "%s: Audio playback not implemented for this API.", self.__class__.__name__)
@@ -381,14 +395,33 @@ class MainScreen(MDScreen):
                           self.__class__.__name__, e)
 
     def on_synthesize(self):
-        # TODO Implement text to speech synthesis (this is mostly a placeholder without a backend implementation yet)
         api = api_factory.get_active_api()
         tmp_dir = App.get_running_app().global_settings.get_tmp_dir()
-        synthesized_file = os.path.join(tmp_dir, 'output_file.wav')
+
+        # Base information for the file name
+        tts_engine = api_factory.get_active_api_name()
+        voice = api.get_voice_name()
+        # index = len(os.listdir(tmp_dir))  # Number of existing files as index
+
+        # Determine the name of the input file (if available)
+        if self.opened_file:
+            base_name = os.path.splitext(self.opened_file)[0]
+        else:
+            base_name = "unnamed"
+
+        # Create the full file name
+        synthesized_file = os.path.join(
+            tmp_dir, f"{base_name}_{tts_engine}_{voice}.wav"
+        )
+
+        #synthesized_file = os.path.join(
+            #tmp_dir, f"{base_name}_{tts_engine}_{voice}_{index}.wav"
+        #)
+
         log.info(f"Using synthesized_file={synthesized_file}")
 
         if api:
-            msg=f"Text has been synthesized\nto an audio file"
+            msg = f"Text has been synthesized\nto an audio file"
             try:
                 # FIXME: Use constant or configurable output path
                 api.synthesize(self.ids.text_main.text, synthesized_file)
@@ -397,7 +430,7 @@ class MainScreen(MDScreen):
                 log.error("%s: %s", self.__class__.__name__, msg)
 
             except Exception as e:
-                msg = "Error during synthesis: \n"+str(e)
+                msg = "Error during synthesis: \n" + str(e)
                 log.error("%s: %s: %s", self.__class__.__name__, msg, e)
 
             self.ids.label_status.text = msg
