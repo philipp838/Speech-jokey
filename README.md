@@ -53,13 +53,6 @@ The currently selected voice is always displayed on the voice selection button.
 Using the voice selection button:
 ![picture of application](./doc/screenshots/select%20voice.png)
 
-## Setting up Speech Provider
-
-To setup a speech provider (e.g. ElevenLabs) the API Key must be entered in the respective settings dialog.
-Please check the documenation of your speech provider to get an API key.
-
-![picture of application](./doc/screenshots/settings%20elevenlabs.png)
-
 ## Prosody parametrization
 
 Several simplified textual shortcuts can be used to parametrize the prosody of the generated audio.
@@ -84,3 +77,11 @@ The file can then be played with the play button.
 
 ## Saving the text file 
 The final version of the edited text can be saved as a text file.
+
+## Setting up Speech Provider
+
+To setup a speech provider (e.g. ElevenLabs) the API Key must be entered in the respective settings dialog.
+Please check the documenation of your speech provider to get an API key.
+
+![picture of application](./doc/screenshots/settings%20elevenlabs.png)
+
