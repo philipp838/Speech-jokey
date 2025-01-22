@@ -1,4 +1,4 @@
-from pathlib import Path
+import re
 import azure.cognitiveservices.speech as speechsdk
 import logging as log
 from kivy.uix.button import Button
@@ -148,22 +148,7 @@ class MSAzureAPISettings(BaseApiSettings):
 
 
 class MSAzureAPI(BaseApi):
-    voices = [
-        {"display_name": "Ingrid (de-AT)", "internal_name": "de-AT-IngridNeural", "language": "de-AT"},
-        {"display_name": "Jonas (de-AT)", "internal_name": "de-AT-JonasNeural", "language": "de-AT"},
-        {"display_name": "Seraphina (de-DE)", "internal_name": "de-DE-SeraphinaMultilingualNeural", "language": "de-DE"},
-        {"display_name": "Florian (de-DE)", "internal_name": "de-DE-FlorianMultilingualNeural", "language": "de-DE"},
-        {"display_name": "Katja (de-DE)", "internal_name": "de-DE-KatjaNeural", "language": "de-DE"},
-        {"display_name": "Leni (de-CH)", "internal_name": "de-CH-LeniNeural", "language": "de-CH"},
-        {"display_name": "Jan (de-CH)", "internal_name": "de-CH-JanNeural", "language": "de-CH"},
-        {"display_name": "Ava (en-US)", "internal_name": "en-US-AvaMultilingualNeural", "language": "en-US"},
-        {"display_name": "Andrew (en-US)", "internal_name": "en-US-AndrewMultilingualNeural", "language": "en-US"},
-        {"display_name": "Derek (en-US)", "internal_name": "en-US-DerekMultilingualNeural", "language": "en-US"},
-        {"display_name": "Ada (en-GB)", "internal_name": "en-GB-AdaMultilingualNeural", "language": "en-GB"},
-        {"display_name": "Libby (en-GB)", "internal_name": "en-GB-LibbyNeural", "language": "en-GB"},
-        {"display_name": "Ryan (en-GB)", "internal_name": "en-GB-RyanNeural", "language": "en-GB"}
-    ]
-    voice_mapping = {voice["display_name"]: voice["internal_name"] for voice in voices}
+    voices = []
 
     ssml_tags = {
         "⏸️": ('<break time="2s"/>', ""),
@@ -196,7 +181,50 @@ class MSAzureAPI(BaseApi):
     def text_from_api_format(self, text):
         return text
 
+    def get_available_voices(self):
+        try:
+            # Initialisiere Speech Config
+            self.speech_config = speechsdk.SpeechConfig(
+                subscription=self.settings.api_key_text,
+                region=self.settings.region_text
+            )
+
+            # Stimmen abrufen
+            speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=self.speech_config)
+            voices_result = speech_synthesizer.get_voices_async().get()
+
+            # Regex-Muster zur Extraktion des Namens
+            pattern = r"(?<=-)[A-Z][a-z]+"
+
+            # Stimmen in gewünschtes Format konvertieren
+            voices = []  # Initialisiere die Liste für die Stimmen
+            for voice in voices_result.voices:
+                # Extrahiere den Namen aus dem `short_name` mit Regex
+                match = re.search(pattern, voice.short_name)
+                voice_name = match.group(0) if match else "Unknown"
+
+                # Erstelle das Display-Name-Format
+                display_name = f"{voice_name} ({voice.locale})"
+
+                # Stimme zur Liste hinzufügen
+                voices.append({
+                    "display_name": display_name,
+                    "internal_name": voice.short_name,
+                    "language": voice.locale,
+                })
+
+            # Stimmen nach Sprache sortieren
+            self.voices = sorted(voices, key=lambda v: v["language"])
+
+            # Mapping aktualisieren
+            self.voice_mapping = {voice["display_name"]: voice["internal_name"] for voice in self.voices}
+            log.info(f"Fetched and sorted {len(self.voices)} voices from Microsoft Azure.")
+
+        except Exception as e:
+            log.error(f"Error fetching voices from Microsoft Azure API: {e}")
+
     def get_available_voice_names(self):
+        self.get_available_voices()
         return [voice["display_name"] for voice in self.voices]
 
     def get_voice_name(self):
