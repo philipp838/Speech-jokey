@@ -150,7 +150,7 @@ class AmazonPollyAPISettings(BaseApiSettings):
 
 
 class AmazonPollyAPI(BaseApi):
-    # Define available voices with display names and internal identifiers
+    # TBD: Get voices dynamically from API
     voices = [
         {"display_name": "Vicki (de-DE)", "internal_name": "Vicki", "language": "de-DE"},
         {"display_name": "Marlene (de-DE)", "internal_name": "Marlene", "language": "de-DE"},
