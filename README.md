@@ -22,7 +22,7 @@ Speech-Jokey is a speech synthesis application with prosody parametrization for 
 
 ## Developer documentation
 
-Please read the [developer documentation](./doc/developer) which describes how to locally install and run the program.
+Please read the [developer documentation](./doc/developer.md) which describes how to locally install and run the program.
 
 ## User documentation
 
