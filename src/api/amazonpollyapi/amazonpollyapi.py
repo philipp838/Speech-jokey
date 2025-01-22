@@ -150,22 +150,7 @@ class AmazonPollyAPISettings(BaseApiSettings):
 
 
 class AmazonPollyAPI(BaseApi):
-    # TBD: Get voices dynamically from API
-
-    voices = [
-        {"display_name": "Vicki (de-DE)", "internal_name": "Vicki", "language": "de-DE"},
-        {"display_name": "Marlene (de-DE)", "internal_name": "Marlene", "language": "de-DE"},
-        {"display_name": "Hans (de-DE)", "internal_name": "Hans", "language": "de-DE"},
-        {"display_name": "Salli (en-US)", "internal_name": "Salli", "language": "en-US"},
-        {"display_name": "Kimberly (en-US)", "internal_name": "Kimberly", "language": "en-US"},
-        {"display_name": "Justin (en-US)", "internal_name": "Justin", "language": "en-US"},
-        {"display_name": "Joey (en-US)", "internal_name": "Joey", "language": "en-US"},
-        {"display_name": "Emma (en-GB)", "internal_name": "Emma", "language": "en-GB"},
-        {"display_name": "Brian (en-GB)", "internal_name": "Brian", "language": "en-GB"},
-        {"display_name": "Amy (en-GB)", "internal_name": "Amy", "language": "en-GB"},
-        {"display_name": "Raveena (en-IN)", "internal_name": "Raveena", "language": "en-IN"},
-        {"display_name": "Aditi (en-IN)", "internal_name": "Aditi", "language": "en-IN"}
-    ]
+    voices = []
 
     ssml_tags = {
         "⏸️": ('<break time="2s"/>', ""),
@@ -178,34 +163,24 @@ class AmazonPollyAPI(BaseApi):
         "🌏": ("<lang xml:lang=\"en-US\">", "</lang>")
     }
 
-    # Create a mapping for quick lookup of internal names by display name
-    voice_mapping = {voice["display_name"]: voice["internal_name"] for voice in voices}
-
     def __init__(self, settings: AmazonPollyAPISettings):
         super(AmazonPollyAPI, self).__init__(settings)
         self.settings = settings
         self.reset_api()
 
     def init_api(self):
-        if self.session != None and self.polly_client != None:
-            # Return, if we are already initialized
+        if self.session and self.polly_client:
             return
 
-        # Load settings if needed for other configurations
         self.settings.load_settings()
-
-        # Access the TextInput fields from the settings widget
         access_key_id_input = self.settings.widget.ids.access_key_id_input.text
         secret_access_key_input = self.settings.widget.ids.secret_access_key_input.text
 
-        # Initialize a boto3 session with the provided credentials
         self.session = boto3.session.Session(
             aws_access_key_id=access_key_id_input,
             aws_secret_access_key=secret_access_key_input,
             region_name="eu-north-1"
         )
-
-        # Create the Polly client from the session
         self.polly_client = self.session.client("polly")
 
     def reset_api(self):
@@ -221,7 +196,36 @@ class AmazonPollyAPI(BaseApi):
     def text_from_api_format(self, text):
         return text
 
+    def get_available_voices(self):
+        try:
+            # First initialize API
+            self.init_api()
+
+            # Get list of voices from API
+            response = self.polly_client.describe_voices()
+
+            # Convert voices
+            voices = [
+                {
+                    "display_name": f"{voice['Name']} ({voice['LanguageCode']})",
+                    "internal_name": voice["Id"],
+                    "language": voice["LanguageCode"]
+                }
+                for voice in response["Voices"]
+            ]
+
+            # Sort voices by language
+            self.voices = sorted(voices, key=lambda v: v["language"])
+
+            # Update mapping
+            self.voice_mapping = {voice["display_name"]: voice["internal_name"] for voice in self.voices}
+            log.info(f"Fetched and set {len(self.voices)} voices from Amazon Polly API.")
+
+        except Exception as e:
+            log.error(f"Error fetching voices from Amazon Polly API: {e}")
+
     def get_available_voice_names(self):
+        self.get_available_voices()
         return [voice["display_name"] for voice in self.voices]
 
     def set_voice_name(self, display_name):
