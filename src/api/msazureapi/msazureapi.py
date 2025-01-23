@@ -158,6 +158,12 @@ class MSAzureAPI(BaseApi):
         "🔈": ("<prosody volume=\"silent\">", "</prosody>"),
         "🔉": ("<prosody volume=\"medium\">", "</prosody>"),
         "🔊": ("<prosody volume=\"loud\">", "</prosody>"),
+        "🐌": ("<prosody rate=\"slow\">", "</prosody>"),
+        "🚶": ("<prosody rate=\"medium\">", "</prosody>"),
+        "🏃": ("<prosody rate=\"fast\">", "</prosody>"),
+        "🗣️⬇️": ("<prosody pitch=\"low\">", "</prosody>"),
+        "🗣️⬆️": ("<prosody pitch=\"high\">", "</prosody>"),
+        "🗣️⏫": ("<prosody pitch=\"x-high\">", "</prosody>"),
         "🌏": ("<lang xml:lang=\"en-US\">", "</lang>")
     }
 
