@@ -102,8 +102,10 @@ class BaseApi(ABC, EventDispatcher, metaclass=ABCMeta):
             logging.info("Playing audio file %s",audio_path)
             logging.info("file exists %s",os.path.exists(audio_path))
             try:
-                t=threading.Thread(target=lambda: self.__play_raw(audio_path))
-                t.start()
+                #t=threading.Thread(target=lambda: self.__play_raw(audio_path))
+                #t.start()
+                data, fs = sf.read(audio_path)
+                sd.play(data, fs)
             except Exception as error:
                 logging.error("Could not play audio file: %s, reason: %s", audio_path,error)
 
