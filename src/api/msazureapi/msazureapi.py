@@ -1,3 +1,4 @@
+import requests
 import re
 import azure.cognitiveservices.speech as speechsdk
 import logging as log
@@ -44,18 +45,26 @@ class MSAzureAPIWidget(MDScreen):
             log.error("Microsoft Azure API key invalid.")
 
     def __check_azure_api_key(self):
+        endpoint = f"https://{self.settings.region_text}.api.cognitive.microsoft.com/sts/v1.0/issueToken"
+        headers = {
+            "Ocp-Apim-Subscription-Key": self.settings.api_key_text
+        }
+
         try:
-            speech_config = speechsdk.SpeechConfig(
-                subscription=self.settings.api_key_text,
-                region=self.settings.region_text
-            )
-            voices_result = speechsdk.VoicesListResult(speech_config)
-            if not voices_result:
+            # Send a POST request to the token endpoint
+            response = requests.post(endpoint, headers=headers)
+
+            # Check if the response status is 200 (OK)
+            if response.status_code == 200:
+                return True
+            else:
+                print(f"Invalid API key or error: {response.status_code} - {response.text}")
                 return False
-            return True
-        except Exception:
-            log.error(f"API initialization failed")
+
+        except requests.exceptions.RequestException as e:
+            print(f"Error while connecting to Azure Speech API: {e}")
             return False
+
 
 class CustomSpinner(Button):
     def __init__(self, options, **kwargs):

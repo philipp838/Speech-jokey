@@ -107,7 +107,11 @@ class BaseApi(ABC, EventDispatcher, metaclass=ABCMeta):
             except Exception as error:
                 logging.error("Could not play audio file: %s, reason: %s", audio_path,error)
 
-
+    def pause(self):
+        """
+        This method pauses the currently played audio file
+        """
+        pass
 
     @abstractmethod
     def synthesize(self, input: str, file: str):

@@ -191,15 +191,20 @@ class AmazonPollyAPI(BaseApi):
             return
 
         self.settings.load_settings()
+
+        # Access the TextInput fields from the settings widget
         access_key_id_input = self.settings.widget.ids.access_key_id_input.text
         secret_access_key_input = self.settings.widget.ids.secret_access_key_input.text
         region_input = self.settings.widget.ids.region_input.text
 
+        # Initialize a boto3 session with the provided credentials
         self.session = boto3.session.Session(
             aws_access_key_id=access_key_id_input,
             aws_secret_access_key=secret_access_key_input,
             region_name=region_input
         )
+
+        # Create the Polly client from the session
         self.polly_client = self.session.client("polly")
 
     def reset_api(self):
