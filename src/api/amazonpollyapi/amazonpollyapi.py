@@ -238,6 +238,7 @@ class AmazonPollyAPI(BaseApi):
             log.error("Voice not found for display name: %s", display_name)
 
     def get_voice_name(self):
+        self.get_available_voice_names()
         selected_voice = self.__get_selected_voice()
         return selected_voice["display_name"]
 

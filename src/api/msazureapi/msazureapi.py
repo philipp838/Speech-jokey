@@ -225,6 +225,7 @@ class MSAzureAPI(BaseApi):
         return [voice["display_name"] for voice in self.voices]
 
     def get_voice_name(self):
+        self.get_available_voice_names()
         selected_voice = self.__get_selected_voice()
         return selected_voice["display_name"]
 
