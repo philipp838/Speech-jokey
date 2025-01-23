@@ -1,6 +1,6 @@
 # Kivy
 from kivy.uix.floatlayout import FloatLayout
-
+from kivy.metrics import sp
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.properties import ObjectProperty, StringProperty
@@ -20,6 +20,7 @@ from modules.dialog.exitdialog import ExitDialog
 import docx2txt
 from docx import Document
 
+
 class EmojiPopup(Popup):
     def __init__(self, text_input, **kwargs):
         super(EmojiPopup, self).__init__(**kwargs)
@@ -29,6 +30,7 @@ class EmojiPopup(Popup):
         # Track the state for each emoji
         self.tag_state = {emoji: "open" for emoji in self.ssml_tags.keys()}
 
+    # Old method to place emoji in textfield
     def insert_emoji(self, emoji):
         # Get cursor position
         cursor_index = self.text_input.cursor_index()
@@ -37,9 +39,9 @@ class EmojiPopup(Popup):
         # Text before and after cursor position
         current_text = self.text_input.text
         new_text = (
-            current_text[:cursor_index] +  # Text in front of cursor
-            emoji +                        # The emoji to be inserted
-            current_text[cursor_index:]    # Text after cursor
+                current_text[:cursor_index] +  # Text in front of cursor
+                emoji +  # The emoji to be inserted
+                current_text[cursor_index:]  # Text after cursor
         )
 
         # Set the new text in the TextInput
@@ -49,6 +51,7 @@ class EmojiPopup(Popup):
         self.text_input.cursor = (cursor_index + len(emoji), 0)
 
         self.dismiss()
+
 
 from api.api_factory import api_factory
 
@@ -74,6 +77,12 @@ class MainScreen(MDScreen):
         "🔈": ("<prosody volume=\"silent\">", "</prosody>"),
         "🔉": ("<prosody volume=\"medium\">", "</prosody>"),
         "🔊": ("<prosody volume=\"loud\">", "</prosody>"),
+        "🐌": ("<prosody rate=\"slow\">", "</prosody>"),
+        "🚶": ("<prosody rate=\"medium\">", "</prosody>"),
+        "🏃": ("<prosody rate=\"fast\">", "</prosody>"),
+        "🗣️⬇️": ("<prosody pitch=\"low\">", "</prosody>"),
+        "🗣️⬆️": ("<prosody pitch=\"high\">", "</prosody>"),
+        "🗣️⏫": ("<prosody pitch=\"x-high\">", "</prosody>"),
         "🌏": ("<lang xml:lang=\"en-US\">", "</lang>")
     }
     supported_text_files = ["txt", "md", "rst", "docx"]
@@ -82,6 +91,7 @@ class MainScreen(MDScreen):
         super(MainScreen, self).__init__(**kwargs)
         self.title = title
         self.ids.text_main.font_size = 24
+        self.original_font_size = self.ids.text_main.font_size
         # Initialize the current TTS engine text
         self.update_current_engine_text()
         self.last_path = None
@@ -103,6 +113,29 @@ class MainScreen(MDScreen):
         self.load_current_voice()
         api_factory.get_active_api().settings.bind(voice_text=self.update_current_voice)
 
+    def change_text_size(self):
+        try:
+            # Access the current font size
+            current_font_size = self.ids.text_main.font_size
+
+            # Define the maximum and original font size
+            max_font_size = 48
+
+            # Toggle between increasing and resetting the font size
+            if current_font_size < max_font_size:
+                # Increase the font size
+                new_font_size = min(max_font_size, current_font_size + 2)
+            else:
+                # Reset to the original font size
+                new_font_size = self.original_font_size
+
+            # Apply the new font size
+            self.ids.text_main.font_size = new_font_size
+
+            # Log the change
+            log.info(f"Text size changed to {new_font_size}")
+        except Exception as e:
+            log.error(f"Error changing text size: {e}")
 
     def on_ssml_button_click(self):
         try:
@@ -113,6 +146,7 @@ class MainScreen(MDScreen):
             log.error("%s: Error with SSML button: %s", self.__class__.__name__, e)
 
     def load_current_voice(self):
+        app_instance = App.get_running_app()
         current_engine = self.get_current_tts_engine()
 
         try:
@@ -233,8 +267,7 @@ class MainScreen(MDScreen):
             log.error("%s: No file selected to load.", self.__class__.__name__)
             return
         if not os.path.isfile(file):
-            log.error("%s: Selection is not a file: %s",
-                      self.__class__.__name__, file)
+            log.error("%s: Selection is not a file: %s", self.__class__.__name__, file)
             return
         file_ext = os.path.splitext(file)[1][1:].lower()
 
@@ -249,15 +282,19 @@ class MainScreen(MDScreen):
             if file_ext == "docx":
                 text = self.docx_to_text(file)
             else:  # For txt, md, rst
-                with open(os.path.abspath(file), 'r') as f:
-                    text = f.read()
+                try:
+                    with open(os.path.abspath(file), 'r', encoding='utf-8') as f:
+                        text = f.read()
+                except UnicodeDecodeError:
+                    log.warning("%s: UTF-8 decoding failed. Trying ISO-8859-1.", self.__class__.__name__)
+                    with open(os.path.abspath(file), 'r', encoding='iso-8859-1') as f:
+                        text = f.read()
 
             self.ids.text_main.text = text
             log.info("%s: Loaded file: %s", self.__class__.__name__, file)
             log.debug("%s: Text: %s...", self.__class__.__name__, text[0:40])
         except Exception as e:
-            log.error("%s: Error loading file: %s. Exception: %s",
-                      self.__class__.__name__, file, e)
+            log.error("%s: Error loading file: %s. Exception: %s", self.__class__.__name__, file, e)
 
     def save_textfile(self, file: str):
         if file is None:
@@ -270,7 +307,8 @@ class MainScreen(MDScreen):
     def get_current_tts_engine(self):
         # Retrieve the current TTS engine from global settings
         app = App.get_running_app()
-        current_engine = app.global_settings.get_setting("TTS", "current_engine", default=api_factory.get_default_api_name())
+        current_engine = app.global_settings.get_setting("TTS", "current_engine",
+                                                         default=api_factory.get_default_api_name())
         api_factory.set_active_api_name(current_engine)
         return current_engine
 
@@ -480,7 +518,8 @@ class MainScreen(MDScreen):
 
     def set_focus(self, dt):
         self.ids.text_main.focus = True
-        
+
+
 class CustomPopup(Popup):
     content_text = StringProperty("")
 
