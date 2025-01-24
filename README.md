@@ -152,6 +152,7 @@ The popup looks like this:
 
 The buttons on the popup place emojis in the textfield of the App. Text enclosed between two identical emojis executes the action of the respective SSML tag.
 Here, the first sentence will be spoken with a lower voice and the second one with a higher voice.
+
 <img src="./doc/screenshots/ssml-text-1.png" alt="Text with emojis for SSML" width="500">
 
 Here, there is a pause after the "Hello". The next sentence is spoken with a strong emphasis level.
