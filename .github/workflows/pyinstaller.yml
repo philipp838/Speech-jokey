@@ -48,7 +48,8 @@ jobs:
       - name: Install Visual C++ Redistributable
         run: |
           # see for other options: https://community.chocolatey.org/packages?q=vcredist&moderationStatus=all-statuses&prerelease=&sortOrder=relevance&tags=redistributable
-          choco install vcredist140
+          # is already installed
+          # choco install vcredist140
 
       # Setup Python
       - uses: actions/setup-python@v4
@@ -59,10 +60,6 @@ jobs:
       #   cache-dependency-path: |
       #     **/requirements*.txt
 
-      - name: Set KIVY env
-        id: kivy_env
-        run: |
-          echo "KIVY_GL_BACKEND=angle_sdl2" >> "$GITHUB_ENV"
       # Install dependencies
       - name: Install Dependencies
         run: |
@@ -75,7 +72,7 @@ jobs:
 
       # Build zip folder with executable using pyinstaller
       - name: Build zip file
-        run: |
+        run: |          
           cd .\build-${{env.WIN_TARGET}}
           cp .\.github\static\${{env.APP_NAME}}.spec.${{env.WIN_TARGET}} ${{env.APP_NAME}}.spec
           cp .github/static/speech-jokey.ico .
