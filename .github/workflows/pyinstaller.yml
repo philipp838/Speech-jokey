@@ -1,0 +1,234 @@
+name: Release (All)
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version Number (x.y.z)"
+        required: true
+        type: string
+      release:
+        description: "Create Release?"
+        required: false
+        default: false
+        type: boolean      
+env:
+  WIN_TARGET: windows
+  LINUX_TARGET: linux
+  MAC_TARGET: macosx
+  APP_NAME: SpeechJokey
+  KIVY_LOG_LEVEL: "error"
+  KIVY_GL_BACKEND: "angle_sdl2"
+  PYTHON_VERSION: "3.11"
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version || steps.custom.outputs.version || steps.tag.outputs.version }}
+    steps:
+      - name: Output Version
+        id: version
+        if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.version == '' ) }}
+        run: echo "version=$(date +'%Y%m%d-%H%M')" >> $GITHUB_OUTPUT
+      - name: Output Custom Version
+        id: custom
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.version != '' }}
+        run: echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+      - name: Output Tag
+        id: tag
+        if: ${{ github.event_name == 'push' }}
+        run: echo "version=$(echo ${GITHUB_REF#refs/*/} | sed -e 's/v//')" >> $GITHUB_OUTPUT
+  build-windows:
+    # Windows is currently the only platform this action supports
+    needs: [version]
+    runs-on: windows-2019
+    steps:
+      # Check-out repository
+      - uses: actions/checkout@v4
+        with:
+          path: build-${{env.WIN_TARGET}}
+      - name: Install Visual C++ Redistributable
+        run: |
+          # see for other options: https://community.chocolatey.org/packages?q=vcredist&moderationStatus=all-statuses&prerelease=&sortOrder=relevance&tags=redistributable
+          # is already installed
+          # choco install vcredist140
+
+      # Setup Python
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '${{env.PYTHON_VERSION}}' # Version range or exact version of a Python version to use, using SemVer's version range syntax
+          architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
+          cache: 'pip'
+      #   cache-dependency-path: |
+      #     **/requirements*.txt
+
+      # Install dependencies
+      - name: Install Dependencies
+        run: |
+          cd .\build-${{env.WIN_TARGET}}
+          pip install poetry
+          poetry config virtualenvs.in-project true
+          poetry install --no-root
+      # Uncomment to printout environment paths and python setup
+      #    poetry run python .\python-env.py
+
+      # Build zip folder with executable using pyinstaller
+      - name: Build zip file
+        run: |          
+          cd .\build-${{env.WIN_TARGET}}
+          cp .\.github\static\${{env.APP_NAME}}.spec.${{env.WIN_TARGET}} ${{env.APP_NAME}}.spec
+          cp .github/static/speech-jokey.ico .
+          poetry run pyinstaller.exe ${{env.APP_NAME}}.spec --clean --noconfirm
+      - name: upload artifact    
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{env.APP_NAME}}-${{env.WIN_TARGET}}-${{ needs.version.outputs.version  }}
+          include-hidden-files: true
+          path: build-${{env.WIN_TARGET}}/dist/${{env.APP_NAME}}
+  build-linux:
+    # Windows is currently the only platform this action supports
+    needs: [version]
+    runs-on: ubuntu-20.04
+    steps:
+      # Check-out repository
+      - uses: actions/checkout@v4
+        with:
+          path: build-${{env.LINUX_TARGET}}
+      # Setup Python
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '${{env.PYTHON_VERSION}}' # Version range or exact version of a Python version to use, using SemVer's version range syntax
+          architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
+          cache: 'pip'
+      #   cache-dependency-path: |
+      #     **/requirements*.txt
+
+      # Install dependencies
+      - name: Install Dependencies
+        run: |
+          cd ./build-${{env.LINUX_TARGET}}
+
+          #install linux dependencies
+          sudo apt update -q
+          sudo apt-get install -y -q libgl1-mesa-glx libgles2-mesa libegl1-mesa libmtdev1
+          
+          pip install poetry
+          poetry config virtualenvs.in-project true
+          poetry install --no-root
+      # Uncomment to printout environment paths and python setup
+      #    poetry run python .\python-env.py
+
+      # Build zip folder with executable using pyinstaller
+      - name: Build zip file
+        run: |
+          echo "KIVY_GL_BACKEND=" >> "$GITHUB_ENV"          
+          cd ./build-${{env.LINUX_TARGET}}
+          cp ./.github/static/${{env.APP_NAME}}.spec.${{env.LINUX_TARGET}} ${{env.APP_NAME}}.spec
+          # patch pyinstaller_hooks of kivy          
+          cp -f .github/static/kivy/tools/packaging/pyinstaller_hooks/__init__.py .venv/lib/python${{env.PYTHON_VERSION}}/site-packages/kivy/tools/packaging/pyinstaller_hooks/
+          echo $KIVY_GL_BACKEND
+          KIVY_GL_BACKEND= poetry run pyinstaller ${{env.APP_NAME}}.spec --clean --noconfirm
+          chmod +x ./dist/${{env.APP_NAME}}/${{env.APP_NAME}}
+      - name: upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{env.APP_NAME}}-${{env.LINUX_TARGET}}-${{ needs.version.outputs.version  }}
+          include-hidden-files: true
+          path: build-${{env.LINUX_TARGET}}/dist/${{env.APP_NAME}}
+  build-macosx:
+    needs: [version]
+    runs-on: macos-12
+    steps:
+      # Check-out repository
+      - uses: actions/checkout@v4
+        with:
+          path: build-${{env.MAC_TARGET}}
+      # Setup Python
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '${{env.PYTHON_VERSION}}' # Version range or exact version of a Python version to use, using SemVer's version range syntax
+          architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
+          cache: 'pip'
+      #   cache-dependency-path: |
+      #     **/requirements*.txt
+
+      # Install dependencies
+      - name: Install Dependencies
+        run: |
+          cd ./build-${{env.MAC_TARGET}}
+          
+          pip install poetry
+          poetry config virtualenvs.in-project true
+          poetry install --no-root
+      # Uncomment to printout environment paths and python setup
+      #    poetry run python .\python-env.py
+
+      # Build zip folder with executable using pyinstaller
+      - name: Build zip file
+        run: |
+          cd ./build-${{env.MAC_TARGET}}
+          cp ./.github/static/${{env.APP_NAME}}.spec.${{env.MAC_TARGET}} ${{env.APP_NAME}}.spec
+          poetry run pyinstaller ${{env.APP_NAME}}.spec --clean --noconfirm
+      - name: upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{env.APP_NAME}}-${{env.MAC_TARGET}}-${{ needs.version.outputs.version  }}
+          include-hidden-files: true
+          path: build-${{env.MAC_TARGET}}/dist/${{env.APP_NAME}}
+  release:
+    # don't use mac for now as it's not finished
+    needs: [version, build-windows, build-linux]
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.release.outputs.upload_url }}  # Set job-level output
+    if: (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) || (github.event_name == 'workflow_dispatch' && github.event.inputs.release == 'true')
+    steps:
+      - name: Create Release
+        id: release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ needs.version.outputs.version }}
+          release_name: Release ${{ needs.version.outputs.version }}
+          draft: false
+          prerelease: false
+  release-upload:
+    runs-on: ubuntu-latest
+    # don't use mac for now as it's not finished
+    needs: [version, build-windows, build-linux, release]
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+      #  with:
+      #    name: ${{env.APP_NAME}}-${{ needs.version.outputs.version  }}
+      #    path: ${{env.APP_NAME}}-${{ needs.version.outputs.version  }}
+      - name: Display structure of downloaded files
+        run: |
+          ls
+          chmod +x ./${{env.APP_NAME}}-${{env.LINUX_TARGET}}-${{ needs.version.outputs.version  }}/${{env.APP_NAME}}
+          zip -r ${{env.APP_NAME}}-${{env.WIN_TARGET}}-${{ needs.version.outputs.version  }}.zip ./${{env.APP_NAME}}-${{env.WIN_TARGET}}-${{ needs.version.outputs.version  }}/
+          zip -r ${{env.APP_NAME}}-${{env.LINUX_TARGET}}-${{ needs.version.outputs.version  }}.zip ./${{env.APP_NAME}}-${{env.LINUX_TARGET}}-${{ needs.version.outputs.version  }}/
+          #    zip -r ${{env.APP_NAME}}-${{env.MAC_TARGET}}-${{ needs.version.outputs.version  }}.zip ./${{env.APP_NAME}}-${{env.MAC_TARGET}}-${{ needs.version.outputs.version  }}/          
+          ls
+          
+      #- name: upload release asset
+      #  uses: actions/upload-release-asset@v1
+      #  env:
+      #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #  with:
+      #    upload_url: ${{ needs.release.outputs.upload_url }}
+      #    asset_path: ./*.zip
+      #    #asset_name: ${{env.APP_NAME}}-${{ needs.version.outputs.version  }}.zip
+      #    asset_content_type: application/zip
+      - name: Upload Multiple Release Assets
+        # You may pin to the exact commit or the version.
+        # uses: NBTX/upload-release-assets@f68d1c91ca950f33ee35514883819c2bb053f487
+        env:
+           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        
+        uses: NBTX/upload-release-assets@v1
+        with:
+          # The URL for uploading assets to the release
+          upload_url: ${{ needs.release.outputs.upload_url }}
+          # A glob of assets to upload
+          targets: ./*.zip
+          asset_content_type: application/zip
