@@ -113,7 +113,7 @@ On the selection of a voice a Popup will appear and the selected voice is displa
 The currently selected voice is always displayed on the voice selection button.
 
 Using the voice selection button:
-![picture of application](./doc/screenshots/select%20voice.png)
+![picture of application](./doc/screenshots/select-voice.png)
 
 ## Use Emojis as SSML tags 
 The App currently uses these emojis for following SSML tags:
