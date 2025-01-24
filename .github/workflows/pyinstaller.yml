@@ -48,7 +48,6 @@ jobs:
           path: build-${{env.WIN_TARGET}}
       - name: Install Visual C++ Redistributable
         run: |
-      # see a list of packages: https://community.chocolatey.org/packages?q=vcredist&moderationStatus=all-statuses&prerelease=&sortOrder=relevance&tags=redistributable
           choco install vcredist140
 
       # Setup Python
