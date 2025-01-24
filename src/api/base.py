@@ -78,6 +78,7 @@ class BaseApi(ABC, EventDispatcher, metaclass=ABCMeta):
     def __init__(self, settings: BaseApiSettings, **kwargs):
         super(BaseApi, self).__init__(**kwargs)
         self.settings = settings
+        self.sound = None
 
     def play(self, audio_file_name="output_file.wav"):
         """
@@ -98,8 +99,9 @@ class BaseApi(ABC, EventDispatcher, metaclass=ABCMeta):
             try:
                 #data, fs = sf.read(audio_path)
                 #sd.play(data, fs)
-                sound = SoundLoader.load(audio_path)
-                sound.play()
+                self.stop()
+                self.sound = SoundLoader.load(audio_path)
+                self.sound.play()
             except Exception as error:
                 logging.error("Could not play audio file: %s, reason: %s", audio_path,error)
 
@@ -107,7 +109,10 @@ class BaseApi(ABC, EventDispatcher, metaclass=ABCMeta):
         """
         This method stops playback of currently playing audio.
         """
-        sd.stop(ignore_errors=True)
+        if(self.sound):
+            self.sound.stop()
+        #sd.stop(ignore_errors=True)
+
 
     @abstractmethod
     def synthesize(self, input: str, file: str):
