@@ -115,6 +115,9 @@ The currently selected voice is always displayed on the voice selection button.
 Using the voice selection button:
 ![picture of application](./doc/screenshots/select%20voice.png)
 
+## Use Emojis as SSML tags 
+
+
 ## Prosody parametrization
 
 Several simplified textual shortcuts can be used to parametrize the prosody of the generated audio.
