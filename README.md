@@ -52,15 +52,14 @@ content across diverse linguistic contexts.
 To create an API-Key, create an ElevenLabs account, click on "My Account" > "API Keys" > "Create API Key". 
 Copy the API key and paste it in the settings of the Speech-Jokey app. The free tier has 10,000 credits per month (~10 min audio).
 
-<img src="./doc/screenshots/elevenlabs account api key.png" alt="ElevenLabs account add api key" width="500">
-![picture of application](./doc/screenshots/elevenlabs account api key.png)
+<img src="./doc/screenshots/elevenlabs account api key.png" alt="ElevenLabs account add api key" width="800">
 
 ### OpenAI
 OpenAI's online Text-to-Speech API converts written text into natural-sounding spoken language using the latest advances in machine learning.
 To create an API-Key, create an OpenAI account, go to the [OpenAI website](https://platform.openai.com/docs/guides/text-to-speech/quickstart), click on "Your profile" in the upper right corner, click on "API Keys" > "Create new secret key".
 Copy the API key and paste it in the settings of the Speech-Jokey App. 
 
-<img src="./doc/screenshots/openai account api key.png" alt="OpenAI account add api key" width="500">
+<img src="./doc/screenshots/openai account api key.png" alt="OpenAI account add api key">
 
 OpenAI TTS has no free tier, there has to be added a credit balance with a credit or debit card.
 The pricing is $0.015 per 1000 characters with the tts−1 model and $0.030 per 1000 characters with tts-1-hd. 
@@ -75,7 +74,7 @@ Go to the [Aws console](https://us-east-1.console.aws.amazon.com/iam/home?region
 A normal access key and a secret access key. Together with your preferred region (e.g eu-north-1) copy the credentials and paste them in the settings of the
 Speech-Jokey app.
 
-<img src="./doc/screenshots/polly account api key.png" alt="Amazon Polly account add api key" width="500">
+<img src="./doc/screenshots/polly account api key.png" alt="Amazon Polly account add api key" width="800">
 
 Amazon Polly has a 12-month trial phase in which 5 million characters for standard voices and 1 million characters for neural voices per month are free.
 After the free trial or outside of the free quota, Amazon Polly standard voices are charged $4 and neural voices with $16 per 1 million characters.
