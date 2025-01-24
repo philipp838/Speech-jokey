@@ -16,8 +16,6 @@ env:
   LINUX_TARGET: linux
   MAC_TARGET: macosx
   APP_NAME: SpeechJokey
-  KIVY_LOG_LEVEL: "error"
-  KIVY_GL_BACKEND: 'angle_sdl2'
   PYTHON_VERSION: "3.11"
 jobs:
   version:
@@ -73,6 +71,8 @@ jobs:
       # Build zip folder with executable using pyinstaller
       - name: Build zip file
         run: |
+          KIVY_GL_BACKEND='angle_sdl2'
+          KIVY_LOG_LEVEL="error"
           cd .\build-${{env.WIN_TARGET}}
           cp .\.github\static\${{env.APP_NAME}}.spec.${{env.WIN_TARGET}} ${{env.APP_NAME}}.spec
           cp .github/static/speech-jokey.ico .
