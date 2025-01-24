@@ -48,6 +48,7 @@ jobs:
           path: build-${{env.WIN_TARGET}}
       - name: Install Visual C++ Redistributable
         run: |
+          # see for other options: https://community.chocolatey.org/packages?q=vcredist&moderationStatus=all-statuses&prerelease=&sortOrder=relevance&tags=redistributable
           choco install vcredist140
 
       # Setup Python
@@ -203,8 +204,9 @@ jobs:
           chmod +x ./${{APP_NAME}}-${{env.LINUX_TARGET}}-${{ needs.version.outputs.version  }}/${{APP_NAME}}
           zip -r ${{APP_NAME}}-${{env.WIN_TARGET}}-${{ needs.version.outputs.version  }}.zip ./${{APP_NAME}}-${{env.WIN_TARGET}}-${{ needs.version.outputs.version  }}/
           zip -r ${{APP_NAME}}-${{env.LINUX_TARGET}}-${{ needs.version.outputs.version  }}.zip ./${{APP_NAME}}-${{env.LINUX_TARGET}}-${{ needs.version.outputs.version  }}/
-      #    zip -r ${{APP_NAME}}-${{env.MAC_TARGET}}-${{ needs.version.outputs.version  }}.zip ./${{APP_NAME}}-${{env.MAC_TARGET}}-${{ needs.version.outputs.version  }}/
+          #    zip -r ${{APP_NAME}}-${{env.MAC_TARGET}}-${{ needs.version.outputs.version  }}.zip ./${{APP_NAME}}-${{env.MAC_TARGET}}-${{ needs.version.outputs.version  }}/          
           ls
+          
       #- name: upload release asset
       #  uses: actions/upload-release-asset@v1
       #  env:
