@@ -53,6 +53,7 @@ To create an API-Key, create an ElevenLabs account, click on "My Account" > "API
 Copy the API key and paste it in the settings of the Speech-Jokey app. The free tier has 10,000 credits per month (~10 min audio).
 
 <img src="./doc/screenshots/elevenlabs account api key.png" alt="ElevenLabs account add api key" width="500">
+![picture of application](./doc/screenshots/elevenlabs account api key.png)
 
 ### OpenAI
 OpenAI's online Text-to-Speech API converts written text into natural-sounding spoken language using the latest advances in machine learning.
