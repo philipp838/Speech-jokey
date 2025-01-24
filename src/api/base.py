@@ -5,9 +5,6 @@ from kivy.app import App
 
 import os
 import logging
-import queue
-import sys
-import threading
 
 try:
     import io
@@ -69,8 +66,6 @@ class BaseApiSettings(ABC, EventDispatcher):
 
 class BaseApi(ABC, EventDispatcher, metaclass=ABCMeta):
     _instance = None
-    buffersize = 2
-    blocksize = 2048
     settings = None
 
     @classmethod
@@ -82,8 +77,6 @@ class BaseApi(ABC, EventDispatcher, metaclass=ABCMeta):
     def __init__(self, settings: BaseApiSettings, **kwargs):
         super(BaseApi, self).__init__(**kwargs)
         self.settings = settings
-        self.q = queue.Queue(maxsize=self.buffersize)
-        self.event = threading.Event()
 
     def play(self, audio_file_name="output_file.wav"):
         """
@@ -102,16 +95,16 @@ class BaseApi(ABC, EventDispatcher, metaclass=ABCMeta):
             logging.info("Playing audio file %s",audio_path)
             logging.info("file exists %s",os.path.exists(audio_path))
             try:
-                t=threading.Thread(target=lambda: self.__play_raw(audio_path))
-                t.start()
+                data, fs = sf.read(audio_path)
+                sd.play(data, fs)
             except Exception as error:
                 logging.error("Could not play audio file: %s, reason: %s", audio_path,error)
 
-    def pause(self):
+    def stop(self):
         """
-        This method pauses the currently played audio file
+        This method stops playback of currently playing audio.
         """
-        pass
+        sd.stop(ignore_errors=True)
 
     @abstractmethod
     def synthesize(self, input: str, file: str):
@@ -122,46 +115,6 @@ class BaseApi(ABC, EventDispatcher, metaclass=ABCMeta):
         If the API does not support audio synthesis, it should raise a NotImplementedError.
         """
         pass
-
-    def __play_callback(self, outdata, frames, time, status):
-        assert frames == self.blocksize
-        if status.output_underflow:
-            print('Output underflow: increase blocksize?', file=sys.stderr)
-            raise sd.CallbackAbort
-        assert not status
-        try:
-            data = self.q.get_nowait()
-        except queue.Empty as e:
-            print('Buffer is empty: increase buffersize?', file=sys.stderr)
-            raise sd.CallbackAbort from e
-        if len(data) < len(outdata):
-            outdata[:len(data)] = data
-            outdata[len(data):] = b'\x00' * (len(outdata) - len(data))
-            raise sd.CallbackStop
-        else:
-            outdata[:] = data
-
-    def __play_raw(self, filename):
-        self.q = queue.Queue(maxsize=self.buffersize)
-        try:
-            with sf.SoundFile(filename) as f:
-                for _ in range(self.buffersize):
-                    data = f.buffer_read(self.blocksize, dtype='float32')
-                    if not data:
-                        break
-                    self.q.put_nowait(data)  # Pre-fill queue
-                stream = sd.RawOutputStream(
-                    samplerate=f.samplerate, blocksize=self.blocksize,
-                    channels=f.channels, dtype='float32',
-                    callback=self.__play_callback, finished_callback=self.event.set)
-                with stream:
-                    timeout = self.blocksize * self.buffersize / f.samplerate
-                    while data:
-                        data = f.buffer_read(self.blocksize, dtype='float32')
-                        self.q.put(data, timeout=timeout)
-                    self.event.wait()  # Wait until playback is finished
-        except Exception as e:
-            logging.error(type(e).__name__ + ': ' + str(e))
 
     @abstractmethod
     def init_api(self):
