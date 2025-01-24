@@ -116,7 +116,46 @@ Using the voice selection button:
 ![picture of application](./doc/screenshots/select%20voice.png)
 
 ## Use Emojis as SSML tags 
+The App currently uses these emojis for following SSML tags:
 
+    ⏸️: <break time="2s">
+Adds a break of 2s.
+
+    😐: <emphasis level="reduced">
+    🙂: <emphasis level="moderate">
+    😁: <emphasis level="strong">
+Sets the emphasis level of the voice. The emphasis of words affects the speed and volume of speech. With more emphasis, 
+the text is spoken louder and slower. With less emphasis, words are spoken quieter and faster. You specify the level of emphasis with the level attribute.
+
+    🔈: <prosody volume="silent">
+    🔉: <prosody volume="medium">
+    🔊: "<prosody volume="loud">
+Sets the prosody volume of the voice. Sets the volume to a predefined value for the current voice. 
+
+    🐌: "<prosody rate="slow">
+    🚶: "<prosody rate="medium">
+    🏃: "<prosody rate="fast">
+Sets the prosody rate of the voice. Sets the speaking speed to a predefined value for the selected voice.
+
+    🗣️⬇️: "<prosody pitch="low">
+    🗣️⬆️: "<prosody pitch="high">
+    🗣️⏫: "<prosody pitch="x-high">
+Sets the prosody pitch of the voice. Sets the pitch to a predefined value for the selected voice.
+
+    🌏: "<lang xml:lang="en-US">
+Use the <lang> tag to specify a different language for a word (set to english), phrase or sentence. Foreign-language words and phrases 
+are usually better spoken if they are enclosed in a pair of <lang> tags.
+
+The popup looks like this:
+
+<img src="./doc/screenshots/emoji-popup.png" alt="Emoji Popup for SSML" width="600">
+
+The buttons on the popup place emojis in the textfield of the App. Text enclosed between two identical emojis executes the action of the respective SSML tag.
+Here, the first sentence will be spoken with a lower voice and the second one with a higher voice.
+<img src="./doc/screenshots/ssml-text-1.png" alt="Text with emojis for SSML" width="500">
+
+Here, there is a pause after the "Hello". The next sentence is spoken with a strong emphasis level.
+<img src="./doc/screenshots/ssml-text-2.png" alt="Text with emojis for SSML" width="500">
 
 ## Prosody parametrization
 
