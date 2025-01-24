@@ -121,7 +121,7 @@ jobs:
           cd ./build-${{env.LINUX_TARGET}}
           cp ./.github/static/${{env.APP_NAME}}.spec.${{env.LINUX_TARGET}} ${{env.APP_NAME}}.spec
           # patch pyinstaller_hooks of kivy          
-          cp -f .github/static/kivy/tools/packaging/pyinstaller_hooks/__init__.py .venv/lib/python${{PYTHON_VERSION}}/site-packages/kivy/tools/packaging/pyinstaller_hooks/
+          cp -f .github/static/kivy/tools/packaging/pyinstaller_hooks/__init__.py .venv/lib/python${{env.PYTHON_VERSION}}/site-packages/kivy/tools/packaging/pyinstaller_hooks/
           poetry run pyinstaller ${{env.APP_NAME}}.spec --clean --noconfirm
           chmod +x ./dist/${{env.APP_NAME}}/${{env.APP_NAME}}
       - name: upload artifact
