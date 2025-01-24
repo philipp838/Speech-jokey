@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod, ABCMeta
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
 from kivy.app import App
+from kivy.core.audio import SoundLoader
 
 import os
 import logging
@@ -95,8 +96,10 @@ class BaseApi(ABC, EventDispatcher, metaclass=ABCMeta):
             logging.info("Playing audio file %s",audio_path)
             logging.info("file exists %s",os.path.exists(audio_path))
             try:
-                data, fs = sf.read(audio_path)
-                sd.play(data, fs)
+                #data, fs = sf.read(audio_path)
+                #sd.play(data, fs)
+                sound = SoundLoader.load(audio_path)
+                sound.play()
             except Exception as error:
                 logging.error("Could not play audio file: %s, reason: %s", audio_path,error)
 
