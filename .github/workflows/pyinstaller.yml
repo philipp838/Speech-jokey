@@ -17,7 +17,7 @@ env:
   MAC_TARGET: macosx
   APP_NAME: SpeechJokey
   KIVY_LOG_LEVEL: "error"
-  KIVY_GL_BACKEND: 'angle_sdl2'
+  KIVY_GL_BACKEND: "angle_sdl2"
   PYTHON_VERSION: "3.11"
 jobs:
   version:
@@ -49,17 +49,18 @@ jobs:
       - name: Install Visual C++ Redistributable
         run: |
           # see for other options: https://community.chocolatey.org/packages?q=vcredist&moderationStatus=all-statuses&prerelease=&sortOrder=relevance&tags=redistributable
-          choco install vcredist140
+          # is already installed
+          # choco install vcredist140
 
       # Setup Python
       - uses: actions/setup-python@v4
         with:
-          python-version: ${{PYTHON_VERSION}} # Version range or exact version of a Python version to use, using SemVer's version range syntax
+          python-version: '${{env.PYTHON_VERSION}}' # Version range or exact version of a Python version to use, using SemVer's version range syntax
           architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
           cache: 'pip'
       #   cache-dependency-path: |
       #     **/requirements*.txt
-            
+
       # Install dependencies
       - name: Install Dependencies
         run: |
@@ -72,17 +73,17 @@ jobs:
 
       # Build zip folder with executable using pyinstaller
       - name: Build zip file
-        run: |
+        run: |          
           cd .\build-${{env.WIN_TARGET}}
-          cp .\.github\static\${{APP_NAME}}.spec.${{env.WIN_TARGET}} ${{APP_NAME}}.spec
+          cp .\.github\static\${{env.APP_NAME}}.spec.${{env.WIN_TARGET}} ${{env.APP_NAME}}.spec
           cp .github/static/speech-jokey.ico .
-          poetry run pyinstaller.exe ${{APP_NAME}}.spec --clean --noconfirm
+          poetry run pyinstaller.exe ${{env.APP_NAME}}.spec --clean --noconfirm
       - name: upload artifact    
         uses: actions/upload-artifact@v4
         with:
-          name: ${{APP_NAME}}-${{env.WIN_TARGET}}-${{ needs.version.outputs.version  }}
+          name: ${{env.APP_NAME}}-${{env.WIN_TARGET}}-${{ needs.version.outputs.version  }}
           include-hidden-files: true
-          path: build-${{env.WIN_TARGET}}/dist/${{APP_NAME}}
+          path: build-${{env.WIN_TARGET}}/dist/${{env.APP_NAME}}
   build-linux:
     # Windows is currently the only platform this action supports
     needs: [version]
@@ -95,7 +96,7 @@ jobs:
       # Setup Python
       - uses: actions/setup-python@v4
         with:
-          python-version: ${{PYTHON_VERSION}} # Version range or exact version of a Python version to use, using SemVer's version range syntax
+          python-version: '${{env.PYTHON_VERSION}}' # Version range or exact version of a Python version to use, using SemVer's version range syntax
           architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
           cache: 'pip'
       #   cache-dependency-path: |
@@ -108,6 +109,7 @@ jobs:
 
           #install linux dependencies
           sudo apt update -q
+          sudo apt-get install -y -q libgl1-mesa-glx libgles2-mesa libegl1-mesa libmtdev1
           
           pip install poetry
           poetry config virtualenvs.in-project true
@@ -118,18 +120,20 @@ jobs:
       # Build zip folder with executable using pyinstaller
       - name: Build zip file
         run: |
+          echo "KIVY_GL_BACKEND=" >> "$GITHUB_ENV"          
           cd ./build-${{env.LINUX_TARGET}}
-          cp ./.github/static/${{APP_NAME}}.spec.${{env.LINUX_TARGET}} ${{APP_NAME}}.spec
+          cp ./.github/static/${{env.APP_NAME}}.spec.${{env.LINUX_TARGET}} ${{env.APP_NAME}}.spec
           # patch pyinstaller_hooks of kivy          
-          cp -f .github/static/kivy/tools/packaging/pyinstaller_hooks/__init__.py .venv/lib/python${{PYTHON_VERSION}}/site-packages/kivy/tools/packaging/pyinstaller_hooks/
-          poetry run pyinstaller ${{APP_NAME}}.spec --clean --noconfirm
-          chmod +x ./dist/${{APP_NAME}}/${{APP_NAME}}
+          cp -f .github/static/kivy/tools/packaging/pyinstaller_hooks/__init__.py .venv/lib/python${{env.PYTHON_VERSION}}/site-packages/kivy/tools/packaging/pyinstaller_hooks/
+          echo $KIVY_GL_BACKEND
+          KIVY_GL_BACKEND= poetry run pyinstaller ${{env.APP_NAME}}.spec --clean --noconfirm
+          chmod +x ./dist/${{env.APP_NAME}}/${{env.APP_NAME}}
       - name: upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{APP_NAME}}-${{env.LINUX_TARGET}}-${{ needs.version.outputs.version  }}
+          name: ${{env.APP_NAME}}-${{env.LINUX_TARGET}}-${{ needs.version.outputs.version  }}
           include-hidden-files: true
-          path: build-${{env.LINUX_TARGET}}/dist/${{APP_NAME}}
+          path: build-${{env.LINUX_TARGET}}/dist/${{env.APP_NAME}}
   build-macosx:
     needs: [version]
     runs-on: macos-12
@@ -141,7 +145,7 @@ jobs:
       # Setup Python
       - uses: actions/setup-python@v4
         with:
-          python-version: ${{PYTHON_VERSION}} # Version range or exact version of a Python version to use, using SemVer's version range syntax
+          python-version: '${{env.PYTHON_VERSION}}' # Version range or exact version of a Python version to use, using SemVer's version range syntax
           architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
           cache: 'pip'
       #   cache-dependency-path: |
@@ -162,14 +166,14 @@ jobs:
       - name: Build zip file
         run: |
           cd ./build-${{env.MAC_TARGET}}
-          cp ./.github/static/${{APP_NAME}}.spec.${{env.MAC_TARGET}} ${{APP_NAME}}.spec
-          poetry run pyinstaller ${{APP_NAME}}.spec --clean --noconfirm
+          cp ./.github/static/${{env.APP_NAME}}.spec.${{env.MAC_TARGET}} ${{env.APP_NAME}}.spec
+          poetry run pyinstaller ${{env.APP_NAME}}.spec --clean --noconfirm
       - name: upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{APP_NAME}}-${{env.MAC_TARGET}}-${{ needs.version.outputs.version  }}
+          name: ${{env.APP_NAME}}-${{env.MAC_TARGET}}-${{ needs.version.outputs.version  }}
           include-hidden-files: true
-          path: build-${{env.MAC_TARGET}}/dist/${{APP_NAME}}
+          path: build-${{env.MAC_TARGET}}/dist/${{env.APP_NAME}}
   release:
     # don't use mac for now as it's not finished
     needs: [version, build-windows, build-linux]
@@ -196,15 +200,15 @@ jobs:
       - name: Download Artifact
         uses: actions/download-artifact@v4
       #  with:
-      #    name: ${{APP_NAME}}-${{ needs.version.outputs.version  }}
-      #    path: ${{APP_NAME}}-${{ needs.version.outputs.version  }}
+      #    name: ${{env.APP_NAME}}-${{ needs.version.outputs.version  }}
+      #    path: ${{env.APP_NAME}}-${{ needs.version.outputs.version  }}
       - name: Display structure of downloaded files
         run: |
           ls
-          chmod +x ./${{APP_NAME}}-${{env.LINUX_TARGET}}-${{ needs.version.outputs.version  }}/${{APP_NAME}}
-          zip -r ${{APP_NAME}}-${{env.WIN_TARGET}}-${{ needs.version.outputs.version  }}.zip ./${{APP_NAME}}-${{env.WIN_TARGET}}-${{ needs.version.outputs.version  }}/
-          zip -r ${{APP_NAME}}-${{env.LINUX_TARGET}}-${{ needs.version.outputs.version  }}.zip ./${{APP_NAME}}-${{env.LINUX_TARGET}}-${{ needs.version.outputs.version  }}/
-          #    zip -r ${{APP_NAME}}-${{env.MAC_TARGET}}-${{ needs.version.outputs.version  }}.zip ./${{APP_NAME}}-${{env.MAC_TARGET}}-${{ needs.version.outputs.version  }}/          
+          chmod +x ./${{env.APP_NAME}}-${{env.LINUX_TARGET}}-${{ needs.version.outputs.version  }}/${{env.APP_NAME}}
+          zip -r ${{env.APP_NAME}}-${{env.WIN_TARGET}}-${{ needs.version.outputs.version  }}.zip ./${{env.APP_NAME}}-${{env.WIN_TARGET}}-${{ needs.version.outputs.version  }}/
+          zip -r ${{env.APP_NAME}}-${{env.LINUX_TARGET}}-${{ needs.version.outputs.version  }}.zip ./${{env.APP_NAME}}-${{env.LINUX_TARGET}}-${{ needs.version.outputs.version  }}/
+          #    zip -r ${{env.APP_NAME}}-${{env.MAC_TARGET}}-${{ needs.version.outputs.version  }}.zip ./${{env.APP_NAME}}-${{env.MAC_TARGET}}-${{ needs.version.outputs.version  }}/          
           ls
           
       #- name: upload release asset
@@ -214,7 +218,7 @@ jobs:
       #  with:
       #    upload_url: ${{ needs.release.outputs.upload_url }}
       #    asset_path: ./*.zip
-      #    #asset_name: ${{APP_NAME}}-${{ needs.version.outputs.version  }}.zip
+      #    #asset_name: ${{env.APP_NAME}}-${{ needs.version.outputs.version  }}.zip
       #    asset_content_type: application/zip
       - name: Upload Multiple Release Assets
         # You may pin to the exact commit or the version.
