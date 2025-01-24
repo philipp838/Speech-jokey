@@ -108,6 +108,7 @@ jobs:
 
           #install linux dependencies
           sudo apt update -q
+          sudo apt-get install -y -q libgl1-mesa-glx libgles2-mesa libegl1-mesa libmtdev1
           
           pip install poetry
           poetry config virtualenvs.in-project true
