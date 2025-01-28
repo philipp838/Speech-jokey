@@ -113,6 +113,7 @@ class AmazonPollyAPISettings(BaseApiSettings):
         self.widget.region_input.bind(text=self.update_settings)
         self.bind(region_text=self.widget.region_input.setter('text'))
 
+
         self.load_settings()
 
     def load_settings(self):
@@ -223,14 +224,16 @@ class AmazonPollyAPI(BaseApi):
             # Get list of voices from API
             response = self.polly_client.describe_voices()
 
-            # Convert voices
+            # Fetch both standard and neural voices
             voices = [
                 {
-                    "display_name": f"{voice['Name']} ({voice['LanguageCode']})",
+                    "display_name": f"{voice['Name']}-{engine} ({voice['LanguageCode']})",
                     "internal_name": voice["Id"],
-                    "language": voice["LanguageCode"]
+                    "language": voice["LanguageCode"],
+                    "engine": engine,
                 }
                 for voice in response["Voices"]
+                for engine in voice["SupportedEngines"]  # Include both neural and standard engines
             ]
 
             # Sort voices by language
@@ -282,6 +285,12 @@ class AmazonPollyAPI(BaseApi):
             # First ensure that API is initialized
             self.init_api()
 
+            # Find the selected voice
+            selected_voice = self.__get_selected_voice()
+
+            if not selected_voice:
+                raise ValueError("Selected voice not found!")
+
             # Perform SSML conversion
             processed_text = self.emoji_to_ssml_tag(input_text, self.ssml_tags)
 
@@ -289,7 +298,8 @@ class AmazonPollyAPI(BaseApi):
                 Text=processed_text,
                 TextType="ssml",
                 OutputFormat="mp3",
-                VoiceId=self.settings.voice_text
+                VoiceId=self.settings.voice_text,
+                Engine=selected_voice["engine"]
             )
 
             # Ensure audio stream exists and save to file
