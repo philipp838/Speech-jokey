@@ -5,7 +5,7 @@ from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown
 from kivymd.uix.screen import MDScreen
 from kivy.app import App
-from kivy.properties import StringProperty, ListProperty, ObjectProperty
+from kivy.properties import StringProperty, ListProperty, ObjectProperty, Clock
 from ..base import BaseApi, BaseApiSettings
 
 
@@ -22,12 +22,21 @@ class AmazonPollyAPIWidget(MDScreen):
         self.title = title
         self.name = AmazonPollyAPI.__name__.lower() + "_settings"
         # Set voice_names from the available voices in AmazonPollyAPI
-        self.voice_names = [f"{voice['display_name']}" for voice in AmazonPollyAPI.voices]
+        self.voice_names = []
+        Clock.schedule_once(self.load_voices, 1)
 
     def on_leave(self, *args):
         log.info("Leaving Amazon Polly settings screen.")
         if self.settings:
             self.settings.save_settings()
+
+    def load_voices(self, dt):
+        app_instance = App.get_running_app()
+        polly_api = app_instance.api_factory.get_api("AmazonPollyAPI")
+
+        polly_api.get_available_voices()
+
+        self.voice_names = [voice["display_name"] for voice in polly_api.voices]
 
     def get_current_voice(self):
         return self.voice_selection.text
@@ -139,6 +148,7 @@ class AmazonPollyAPISettings(BaseApiSettings):
     def update_settings(self, instance, value):
         self.access_key_id_text = self.widget.access_key_id_input.text
         self.secret_access_key_text = self.widget.secret_access_key_input.text
+        self.voice_text = self.widget.voice_selection.text
 
         selected_voice = next(
             (v for v in AmazonPollyAPI.voices if v["display_name"] == self.widget.voice_selection.text),

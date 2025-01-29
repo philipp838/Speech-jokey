@@ -5,7 +5,7 @@ from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown
 from kivymd.uix.screen import MDScreen
 from kivy.app import App
-from kivy.properties import StringProperty, ListProperty, ObjectProperty
+from kivy.properties import StringProperty, ListProperty, ObjectProperty, Clock
 from ..base import BaseApi, BaseApiSettings
 
 
@@ -21,12 +21,22 @@ class MSAzureAPIWidget(MDScreen):
         super(MSAzureAPIWidget, self).__init__(**kwargs)
         self.title = title
         self.name = MSAzureAPI.__name__.lower() + "_settings"
-        self.voice_names = [f"{voice['display_name']}" for voice in MSAzureAPI.voices]
+        # Set voice_names from the available voices in AmazonPollyAPI
+        self.voice_names = []
+        Clock.schedule_once(self.load_voices, 1)
 
     def on_leave(self, *args):
         log.info("Leaving OpenAI settings screen.")
         if self.settings:
             self.settings.save_settings()
+
+    def load_voices(self, dt):
+        app_instance = App.get_running_app()
+        polly_api = app_instance.api_factory.get_api("MSAzureAPI")
+
+        polly_api.get_available_voices()
+
+        self.voice_names = [voice["display_name"] for voice in polly_api.voices]
 
     def get_current_voice(self):
         return self.voice_selection.text
@@ -137,6 +147,7 @@ class MSAzureAPISettings(BaseApiSettings):
     def update_settings(self, instance, value):
         self.api_key_text = self.widget.api_key_input.text
         self.region_text = self.widget.region_input.text
+        self.voice_text = self.widget.voice_selection.text
 
         selected_voice = next(
             (v for v in MSAzureAPI.voices if v["display_name"] == self.widget.voice_selection.text),
