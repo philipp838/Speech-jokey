@@ -178,6 +178,7 @@ class AmazonPollyAPISettings(BaseApiSettings):
         self.secret_access_key_text = self.widget.secret_access_key_input.text
         self.region_text = self.widget.region_input.text
         self.model_text = self.widget.model_selection.text
+        self.voice_text = self.widget.voice_selection.text
 
         selected_voice = next(
             (v for v in AmazonPollyAPI.voices if v["display_name"] == self.widget.voice_selection.text),
