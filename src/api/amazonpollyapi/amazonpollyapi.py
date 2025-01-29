@@ -269,18 +269,17 @@ class AmazonPollyAPI(BaseApi):
             response = self.polly_client.describe_voices(Engine=self.settings.model_text)
 
             # Fetch both standard and neural voices
-            voices = [
+            self.voices = [
                 {
                     "display_name": f"{voice['Name']} ({voice['LanguageCode']})",
                     "internal_name": voice["Id"],
-                    "language": voice["LanguageCode"],
-                    "engine": self.settings.model_text,
+                    "language": voice["LanguageCode"]
                 }
                 for voice in response["Voices"]
             ]
 
             # Sort voices by language
-            self.voices = sorted(voices, key=lambda v: v["language"])
+            self.voices.sort(key=lambda v: v["language"])
 
             # Update mapping
             self.voice_mapping = {voice["display_name"]: voice["internal_name"] for voice in self.voices}
