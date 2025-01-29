@@ -5,7 +5,7 @@ from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown
 from kivymd.uix.screen import MDScreen
 from kivy.app import App
-from kivy.properties import StringProperty, ListProperty, ObjectProperty
+from kivy.properties import StringProperty, ListProperty, ObjectProperty, Clock
 from ..base import BaseApi, BaseApiSettings
 
 
@@ -25,8 +25,10 @@ class AmazonPollyAPIWidget(MDScreen):
         self.title = title
         self.name = AmazonPollyAPI.__name__.lower() + "_settings"
         # Set voice_names from the available voices in AmazonPollyAPI
-        self.voice_names = [f"{voice['display_name']}" for voice in AmazonPollyAPI.voices]
-        self.model_names = [model for model in AmazonPollyAPI.models]
+        self.voice_names = []
+        Clock.schedule_once(self.load_voices, 1)
+        self.model_names = []
+        Clock.schedule_once(self.load_models, 1)
 
     def on_leave(self, *args):
         log.info("Leaving Amazon Polly settings screen.")
@@ -35,6 +37,19 @@ class AmazonPollyAPIWidget(MDScreen):
 
     def get_current_voice(self):
         return self.voice_selection.text
+
+    def load_voices(self, dt):
+        app_instance = App.get_running_app()
+        polly_api = app_instance.api_factory.get_api("AmazonPollyAPI")
+
+        polly_api.get_available_voices()
+
+        self.voice_names = [voice["display_name"] for voice in polly_api.voices]
+
+    def load_models(self, dt):
+        app_instance = App.get_running_app()
+        polly_api = app_instance.api_factory.get_api("AmazonPollyAPI")
+        self.model_names = polly_api.get_available_model_names()
 
     def init_api(self):
         self.settings.update_settings(self.access_key_id_input, self.secret_access_key_input)
@@ -174,7 +189,7 @@ class AmazonPollyAPISettings(BaseApiSettings):
 
 
 class AmazonPollyAPI(BaseApi):
-    models = ["standard", "neural", "generative", "long-form"]
+    models = []
     voices = []
 
     ssml_tags = {
@@ -219,14 +234,31 @@ class AmazonPollyAPI(BaseApi):
         self.session=None
         self.polly_client=None
 
-    def get_available_model_names(self):
-        return []
-
     def text_to_api_format(self, text):
         return text
 
     def text_from_api_format(self, text):
         return text
+
+    def get_available_model_names(self):
+        try:
+            self.init_api()
+
+            response = self.polly_client.describe_voices()
+
+            # Get polly engines from voices
+            models = set()
+            for voice in response["Voices"]:
+                models.update(voice["SupportedEngines"])
+
+            self.models = sorted(models)
+            log.info(f"Fetched available models from Amazon Polly API: {self.models}")
+
+            return self.models
+
+        except Exception as e:
+            log.error(f"Error fetching models from Amazon Polly API: {e}")
+            return []
 
     def get_available_voices(self):
         try:
