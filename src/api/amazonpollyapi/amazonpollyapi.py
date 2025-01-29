@@ -16,7 +16,9 @@ class AmazonPollyAPIWidget(MDScreen):
     secret_access_key_input = ObjectProperty(None)  # Field for secret access key input
     region_input = ObjectProperty(None)  # Field for region input
     voice_selection = ObjectProperty(None)  # Dropdown for selecting voices
+    model_selection = ObjectProperty(None)  # Dropdown for selecting models
     voice_names = ListProperty()
+    model_names = ListProperty()
 
     def __init__(self, title: str = "Amazon Polly API Settings", **kwargs):
         super(AmazonPollyAPIWidget, self).__init__(**kwargs)
@@ -24,6 +26,7 @@ class AmazonPollyAPIWidget(MDScreen):
         self.name = AmazonPollyAPI.__name__.lower() + "_settings"
         # Set voice_names from the available voices in AmazonPollyAPI
         self.voice_names = [f"{voice['display_name']}" for voice in AmazonPollyAPI.voices]
+        self.model_names = [model for model in AmazonPollyAPI.models]
 
     def on_leave(self, *args):
         log.info("Leaving Amazon Polly settings screen.")
@@ -86,6 +89,7 @@ class AmazonPollyAPISettings(BaseApiSettings):
     secret_access_key_text = StringProperty("")
     region_text = StringProperty("")
     voice_text = StringProperty("Vicky")
+    model_text = StringProperty("standard")
 
     @classmethod
     def isSupported(cls):
@@ -107,6 +111,9 @@ class AmazonPollyAPISettings(BaseApiSettings):
         self.widget.secret_access_key_input.bind(text=self.update_settings)
         self.bind(secret_access_key_text=self.widget.secret_access_key_input.setter('text'))
 
+        self.widget.model_selection.bind(text=self.update_settings)
+        self.bind(model_text=self.widget.model_selection.setter('text'))
+
         self.widget.voice_selection.bind(text=self.update_settings)
         self.bind(voice_text=self.widget.voice_selection.setter('text'))
 
@@ -125,9 +132,10 @@ class AmazonPollyAPISettings(BaseApiSettings):
             self.api_name, "secret_access_key_input", default="")
         self.region_text = app_instance.global_settings.get_setting(
             self.api_name, "region", default="")
+        self.model_text = app_instance.global_settings.get_setting(
+            self.api_name, "model", default="tts-1")
         self.voice_text = app_instance.global_settings.get_setting(
-            self.api_name, "voice", default=""
-        )
+            self.api_name, "voice", default="")
         matching_voice = next(
             (v["display_name"] for v in AmazonPollyAPI.voices if v["internal_name"] == self.voice_text),
             None
@@ -146,12 +154,15 @@ class AmazonPollyAPISettings(BaseApiSettings):
         app_instance.global_settings.update_setting(
             self.api_name, "region", self.region_text)
         app_instance.global_settings.update_setting(
+            self.api_name, "model", self.model_text)
+        app_instance.global_settings.update_setting(
             self.api_name, "voice", self.voice_text)
 
     def update_settings(self, instance, value):
         self.access_key_id_text = self.widget.access_key_id_input.text
         self.secret_access_key_text = self.widget.secret_access_key_input.text
         self.region_text = self.widget.region_input.text
+        self.model_text = self.widget.model_selection.text
 
         selected_voice = next(
             (v for v in AmazonPollyAPI.voices if v["display_name"] == self.widget.voice_selection.text),
@@ -163,6 +174,7 @@ class AmazonPollyAPISettings(BaseApiSettings):
 
 
 class AmazonPollyAPI(BaseApi):
+    models = ["standard", "neural", "generative", "long-form"]
     voices = []
 
     ssml_tags = {
@@ -222,18 +234,17 @@ class AmazonPollyAPI(BaseApi):
             self.init_api()
 
             # Get list of voices from API
-            response = self.polly_client.describe_voices()
+            response = self.polly_client.describe_voices(Engine=self.settings.model_text)
 
             # Fetch both standard and neural voices
             voices = [
                 {
-                    "display_name": f"{voice['Name']}-{engine} ({voice['LanguageCode']})",
+                    "display_name": f"{voice['Name']} ({voice['LanguageCode']})",
                     "internal_name": voice["Id"],
                     "language": voice["LanguageCode"],
-                    "engine": engine,
+                    "engine": self.settings.model_text,
                 }
                 for voice in response["Voices"]
-                for engine in voice["SupportedEngines"]  # Include both neural and standard engines
             ]
 
             # Sort voices by language
@@ -285,12 +296,6 @@ class AmazonPollyAPI(BaseApi):
             # First ensure that API is initialized
             self.init_api()
 
-            # Find the selected voice
-            selected_voice = self.__get_selected_voice()
-
-            if not selected_voice:
-                raise ValueError("Selected voice not found!")
-
             # Perform SSML conversion
             processed_text = self.emoji_to_ssml_tag(input_text, self.ssml_tags)
 
@@ -299,7 +304,7 @@ class AmazonPollyAPI(BaseApi):
                 TextType="ssml",
                 OutputFormat="mp3",
                 VoiceId=self.settings.voice_text,
-                Engine=selected_voice["engine"]
+                Engine=self.settings.model_text
             )
 
             # Ensure audio stream exists and save to file
