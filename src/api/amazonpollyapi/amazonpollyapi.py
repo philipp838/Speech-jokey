@@ -24,11 +24,6 @@ class AmazonPollyAPIWidget(MDScreen):
         super(AmazonPollyAPIWidget, self).__init__(**kwargs)
         self.title = title
         self.name = AmazonPollyAPI.__name__.lower() + "_settings"
-        # Set voice_names from the available voices in AmazonPollyAPI
-        self.voice_names = []
-        Clock.schedule_once(self.load_voices, 1)
-        self.model_names = []
-        Clock.schedule_once(self.load_models, 1)
 
     def on_leave(self, *args):
         log.info("Leaving Amazon Polly settings screen.")
@@ -37,19 +32,6 @@ class AmazonPollyAPIWidget(MDScreen):
 
     def get_current_voice(self):
         return self.voice_selection.text
-
-    def load_voices(self, dt):
-        app_instance = App.get_running_app()
-        polly_api = app_instance.api_factory.get_api("AmazonPollyAPI")
-
-        polly_api.get_available_voices()
-
-        self.voice_names = [voice["display_name"] for voice in polly_api.voices]
-
-    def load_models(self, dt):
-        app_instance = App.get_running_app()
-        polly_api = app_instance.api_factory.get_api("AmazonPollyAPI")
-        self.model_names = polly_api.get_available_model_names()
 
     def init_api(self):
         self.settings.update_settings(self.access_key_id_input, self.secret_access_key_input)
@@ -210,6 +192,11 @@ class AmazonPollyAPI(BaseApi):
         self.reset_api()
 
     def init_api(self):
+        self.settings.load_settings()
+        self.settings.widget.model_names = self.get_available_model_names()
+        self.settings.widget.voice_names = self.get_available_voice_names()
+
+    def init_polly_connection(self):
         if self.session and self.polly_client:
             return
 
@@ -243,8 +230,7 @@ class AmazonPollyAPI(BaseApi):
 
     def get_available_model_names(self):
         try:
-            self.init_api()
-
+            self.init_polly_connection()
             response = self.polly_client.describe_voices()
 
             # Get polly engines from voices
@@ -263,9 +249,7 @@ class AmazonPollyAPI(BaseApi):
 
     def get_available_voices(self):
         try:
-            # First initialize API
-            self.init_api()
-
+            self.init_polly_connection()
             # Get list of voices from API
             response = self.polly_client.describe_voices(Engine=self.settings.model_text)
 
@@ -326,7 +310,7 @@ class AmazonPollyAPI(BaseApi):
     def synthesize(self, input_text: str, out_filename: str):
         try:
             # First ensure that API is initialized
-            self.init_api()
+            self.init_polly_connection()
 
             # Perform SSML conversion
             processed_text = self.emoji_to_ssml_tag(input_text, self.ssml_tags)
