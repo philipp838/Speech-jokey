@@ -21,22 +21,11 @@ class MSAzureAPIWidget(MDScreen):
         super(MSAzureAPIWidget, self).__init__(**kwargs)
         self.title = title
         self.name = MSAzureAPI.__name__.lower() + "_settings"
-        # Set voice_names from the available voices in AmazonPollyAPI
-        self.voice_names = []
-        Clock.schedule_once(self.load_voices, 1)
 
     def on_leave(self, *args):
         log.info("Leaving OpenAI settings screen.")
         if self.settings:
             self.settings.save_settings()
-
-    def load_voices(self, dt):
-        app_instance = App.get_running_app()
-        polly_api = app_instance.api_factory.get_api("MSAzureAPI")
-
-        polly_api.get_available_voices()
-
-        self.voice_names = [voice["display_name"] for voice in polly_api.voices]
 
     def get_current_voice(self):
         return self.voice_selection.text
@@ -178,6 +167,7 @@ class MSAzureAPI(BaseApi):
 
     def init_api(self):
         self.settings.load_settings()
+        self.settings.widget.voice_names = self.get_available_voice_names()
 
     def reset_api(self):
         self.voices = []
