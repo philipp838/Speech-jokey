@@ -1,4 +1,5 @@
 import re
+import requests
 import azure.cognitiveservices.speech as speechsdk
 import logging as log
 from kivy.uix.button import Button
@@ -43,17 +44,24 @@ class MSAzureAPIWidget(MDScreen):
             log.error("Microsoft Azure API key invalid.")
 
     def __check_azure_api_key(self):
+        endpoint = f"https://{self.settings.region_text}.api.cognitive.microsoft.com/sts/v1.0/issueToken"
+        headers = {
+            "Ocp-Apim-Subscription-Key": self.settings.api_key_text
+        }
+
         try:
-            speech_config = speechsdk.SpeechConfig(
-                subscription=self.settings.api_key_text,
-                region=self.settings.region_text
-            )
-            voices_result = speechsdk.VoicesListResult(speech_config)
-            if not voices_result:
+            # Send a POST request to the token endpoint
+            response = requests.post(endpoint, headers=headers)
+
+            # Check if the response status is 200 (OK)
+            if response.status_code == 200:
+                return True
+            else:
+                print(f"Invalid API key or error: {response.status_code} - {response.text}")
                 return False
-            return True
-        except Exception:
-            log.error(f"API initialization failed")
+
+        except requests.exceptions.RequestException as e:
+            print(f"Error while connecting to Azure Speech API: {e}")
             return False
 
 class CustomSpinner(Button):
@@ -198,21 +206,21 @@ class MSAzureAPI(BaseApi):
             pattern = r"(?<=-)[A-Z][a-z]+"
 
             # Convert voices to the desired format
-            voices = []  # Initialisiere die Liste für die Stimmen
+            self.voices = []
             for voice in voices_result.voices:
                 match = re.search(pattern, voice.short_name)
                 voice_name = match.group(0) if match else "Unknown"
 
                 display_name = f"{voice_name} ({voice.locale})"
 
-                voices.append({
+                self.voices.append({
                     "display_name": display_name,
                     "internal_name": voice.short_name,
                     "language": voice.locale,
                 })
 
             # Sort voices by language
-            self.voices = sorted(voices, key=lambda v: v["language"])
+            self.voices.sort(key=lambda v: v["language"])
 
             # Update mapping
             self.voice_mapping = {voice["display_name"]: voice["internal_name"] for voice in self.voices}
