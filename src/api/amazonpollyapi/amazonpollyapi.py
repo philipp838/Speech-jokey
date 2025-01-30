@@ -270,6 +270,13 @@ class AmazonPollyAPI(BaseApi):
             self.voice_mapping = {voice["display_name"]: voice["internal_name"] for voice in self.voices}
             log.info(f"Fetched and set {len(self.voices)} voices from Amazon Polly API.")
 
+            # If current voice is not in voice list of polly engine, reset voice
+            if self.settings.voice_text and self.settings.voice_text not in [voice["internal_name"] for voice in self.voices]:
+                log.warning(
+                    f"Current voice {self.settings.voice_text} not compatible with model '{self.settings.model_text}'. Resetting voice.")
+                self.settings.voice_text = ""
+                self.settings.save_settings()
+
         except Exception as e:
             log.error(f"Error fetching voices from Amazon Polly API: {e}")
 
