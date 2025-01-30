@@ -1,5 +1,6 @@
 import requests
 import re
+import requests
 import azure.cognitiveservices.speech as speechsdk
 import logging as log
 from kivy.uix.button import Button
@@ -22,22 +23,11 @@ class MSAzureAPIWidget(MDScreen):
         super(MSAzureAPIWidget, self).__init__(**kwargs)
         self.title = title
         self.name = MSAzureAPI.__name__.lower() + "_settings"
-        # Set voice_names from the available voices in AmazonPollyAPI
-        self.voice_names = []
-        Clock.schedule_once(self.load_voices, 1)
 
     def on_leave(self, *args):
         log.info("Leaving OpenAI settings screen.")
         if self.settings:
             self.settings.save_settings()
-
-    def load_voices(self, dt):
-        app_instance = App.get_running_app()
-        polly_api = app_instance.api_factory.get_api("MSAzureAPI")
-
-        polly_api.get_available_voices()
-
-        self.voice_names = [voice["display_name"] for voice in polly_api.voices]
 
     def get_current_voice(self):
         return self.voice_selection.text
@@ -193,6 +183,7 @@ class MSAzureAPI(BaseApi):
 
     def init_api(self):
         self.settings.load_settings()
+        self.settings.widget.voice_names = self.get_available_voice_names()
 
     def reset_api(self):
         self.voices = []
@@ -223,21 +214,21 @@ class MSAzureAPI(BaseApi):
             pattern = r"(?<=-)[A-Z][a-z]+"
 
             # Convert voices to the desired format
-            voices = []  # Initialisiere die Liste für die Stimmen
+            self.voices = []
             for voice in voices_result.voices:
                 match = re.search(pattern, voice.short_name)
                 voice_name = match.group(0) if match else "Unknown"
 
                 display_name = f"{voice_name} ({voice.locale})"
 
-                voices.append({
+                self.voices.append({
                     "display_name": display_name,
                     "internal_name": voice.short_name,
                     "language": voice.locale,
                 })
 
             # Sort voices by language
-            self.voices = sorted(voices, key=lambda v: v["language"])
+            self.voices.sort(key=lambda v: v["language"])
 
             # Update mapping
             self.voice_mapping = {voice["display_name"]: voice["internal_name"] for voice in self.voices}
