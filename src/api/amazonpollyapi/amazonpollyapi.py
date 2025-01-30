@@ -253,7 +253,7 @@ class AmazonPollyAPI(BaseApi):
             # Get list of voices from API
             response = self.polly_client.describe_voices(Engine=self.settings.model_text)
 
-            # Fetch both standard and neural voices
+            # Fetch voices for selected engine
             self.voices = [
                 {
                     "display_name": f"{voice['Name']} ({voice['LanguageCode']})",
