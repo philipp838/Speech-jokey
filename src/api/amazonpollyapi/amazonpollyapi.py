@@ -255,6 +255,7 @@ class AmazonPollyAPI(BaseApi):
     def get_available_voices(self):
         try:
             self.init_polly_connection()
+
             # Get list of voices from API
             response = self.polly_client.describe_voices(Engine=self.settings.model_text)
 
