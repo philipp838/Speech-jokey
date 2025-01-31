@@ -1,4 +1,5 @@
 import pyttsx3
+import re
 import logging as log
 from kivymd.uix.screen import MDScreen
 from kivy.uix.dropdown import DropDown
@@ -108,9 +109,27 @@ class Pyttsx3API(BaseApi):
         if not self.voices:
             engine = pyttsx3.init()
             available_voices = engine.getProperty('voices')
-            self.voices = [{"display_name": v.name, "internal_name": v.id} for v in available_voices]
-            self.voice_mapping = {voice["display_name"]: voice["internal_name"] for voice in self.voices}
-            engine.stop()
+            self.voices = []
+
+            voice_name_pattern = re.compile(
+                r"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_[A-Z]{2}-[A-Z]{2}_(\w+)_\d+\.\d+")
+            language_pattern = re.compile(
+                r"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_([A-Z]{2}-[A-Z]{2})_")
+
+            for v in available_voices:
+                # Versuche, Name und Sprache mit Regex zu extrahieren
+                name_match = voice_name_pattern.search(v.id)
+                language_match = language_pattern.search(v.id)
+
+                display_name = name_match.group(1) if name_match else v.name
+                language = language_match.group(1) if language_match else None
+
+                self.voices.append({
+                    "display_name": f"{display_name} ({language})",
+                    "internal_name": v.id
+                })
+
+                self.voice_mapping = {voice["display_name"]: voice["internal_name"] for voice in self.voices}
 
     def get_available_model_names(self):
         return []
