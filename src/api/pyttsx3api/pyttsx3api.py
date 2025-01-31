@@ -124,8 +124,10 @@ class Pyttsx3API(BaseApi):
                 display_name = name_match.group(1) if name_match else v.name
                 language = language_match.group(1) if language_match else None
 
+                full_display_name = f"{display_name} ({language})" if language else f"{display_name}"
+
                 self.voices.append({
-                    "display_name": f"{display_name} ({language})",
+                    "display_name": full_display_name,
                     "internal_name": v.id
                 })
 
