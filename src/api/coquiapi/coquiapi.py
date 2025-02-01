@@ -81,10 +81,19 @@ class CoquiAPISettings(BaseApiSettings):
 
     def load_settings(self):
         app_instance = App.get_running_app()
-        self.voice_text = app_instance.global_settings.get_setting(
-            self.api_name, "voice", default="")
         self.model_text = app_instance.global_settings.get_setting(
             self.api_name, "model", default="")
+        self.voice_text = app_instance.global_settings.get_setting(
+            self.api_name, "voice", default="")
+
+        matching_voice = next(
+            (v["display_name"] for v in CoquiAPI.voices if v["internal_name"] == self.voice_text),
+            None
+        )
+        if matching_voice:
+            self.widget.voice_selection.text = matching_voice
+        else:
+            log.warning(f"No matching display name for internal name: {self.voice_text}")
 
     def save_settings(self):
         app_instance = App.get_running_app()
@@ -97,40 +106,17 @@ class CoquiAPISettings(BaseApiSettings):
         self.voice_text = self.widget.voice_selection.text
         self.model_text = self.widget.model_selection.text
 
+        selected_voice = next(
+            (v for v in CoquiAPI.voices if v["display_name"] == self.widget.voice_selection.text),
+            None
+        )
+        if selected_voice:
+            self.voice_text = selected_voice["internal_name"]
+            log.info(f"Saved internal_name: {self.voice_text}")
+
 class CoquiAPI(BaseApi):
-    models = ["YourTTS", "xtts_v2"]
-    voices = [
-        {"display_name": "YourTTS (en-female1)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-en-5", "model": models[0], "lang": "en"},
-        {"display_name": "YourTTS (en-female2)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-en-5\n", "model": models[0], "lang": "en"},
-        {"display_name": "YourTTS (en-male1)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-en-2", "model": models[0], "lang": "en"},
-        {"display_name": "YourTTS (en-male2)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-en-2\n", "model": models[0], "lang": "en"},
-        {"display_name": "YourTTS (pt-female)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-pt-4\n", "model": models[0], "lang": "pt-br"},
-        {"display_name": "YourTTS (pt-male)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-pt-3\n", "model": models[0], "lang": "pt-br"},
-        {"display_name": "YourTTS (fr-female)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-en-5\n", "model": models[0], "lang": "fr-fr"},
-        {"display_name": "YourTTS (fr-male)", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-en-2\n", "model": models[0], "lang": "fr-fr"}
-    ]
-    xtts_v2_lang = ['de', 'en', 'es', 'fr', 'it', 'pt', 'pl', 'tr', 'ru', 'nl', 'cs', 'ar', 'zh-cn', 'hu', 'ko', 'ja', 'hi']
-    xtts_v2_speaker = ['Claribel Dervla', 'Daisy Studious', 'Gracie Wise', 'Tammie Ema', 'Alison Dietlinde', 'Ana Florence',
-                       'Annmarie Nele', 'Asya Anara', 'Brenda Stern',  'Gitta Nikolina', 'Henriette Usha', 'Sofia Hellen',
-                       'Tammy Grit', 'Tanja Adelina', 'Vjollca Johnnie', 'Andrew Chipper', 'Badr Odhiambo', 'Dionisio Schuyler',
-                       'Royston Min', 'Viktor Eka', 'Abrahan Mack', 'Adde Michal', 'Baldur Sanjin', 'Craig Gutsy', 'Damien Black',
-                       'Gilberto Mathias', 'Ilkin Urbano', 'Kazuhiko Atallah', 'Ludvig Milivoj', 'Suad Qasim', 'Torcull Diarmuid',
-                       'Viktor Menelaos', 'Zacharie Aimilios', 'Nova Hogarth', 'Maja Ruoho', 'Uta Obando', 'Lidiya Szekeres',
-                       'Chandra MacFarland', 'Szofi Granger', 'Camilla Holmström', 'Lilya Stainthorpe', 'Zofija Kendrick',
-                       'Narelle Moon', 'Barbora MacLean', 'Alexandra Hisakawa', 'Alma María', 'Rosemary Okafor', 'Ige Behringer',
-                       'Filip Traverse', 'Damjan Chapman', 'Wulf Carlevaro', 'Aaron Dreschner', 'Kumar Dahl', 'Eugenio Mataracı',
-                       'Ferran Simen', 'Xavier Hayasaka', 'Luis Moray', 'Marcos Rudaski']
-
-    for lang in xtts_v2_lang:
-        for speaker in xtts_v2_speaker:
-            voices.append({
-                "display_name": f"{speaker} ({lang})",
-                "internal_name": f"tts_models/multilingual/multi-dataset/xtts_v2--{speaker}",
-                "model": models[1],
-                "lang": lang
-            })
-
-    voice_mapping = {voice["display_name"]: voice["internal_name"] for voice in voices}
+    models = []
+    voices = []
 
     def __init__(self, settings: CoquiAPISettings):
         super(CoquiAPI, self).__init__(settings)
@@ -151,10 +137,69 @@ class CoquiAPI(BaseApi):
         return self.models
 
     def get_available_voices(self):
+        models = self.get_available_model_names()
+
+        voices = [
+            {"display_name": "en-female1",
+             "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-en-5", "model": models[0],
+             "lang": "en"},
+            {"display_name": "en-female2",
+             "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-en-5\n", "model": models[0],
+             "lang": "en"},
+            {"display_name": "en-male1",
+             "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-en-2", "model": models[0],
+             "lang": "en"},
+            {"display_name": "en-male2",
+             "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-en-2\n", "model": models[0],
+             "lang": "en"},
+            {"display_name": "pt-female",
+             "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-pt-4\n", "model": models[0],
+             "lang": "pt-br"},
+            {"display_name": "pt-male",
+             "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-pt-3\n", "model": models[0],
+             "lang": "pt-br"},
+            {"display_name": "fr-female",
+             "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-en-5\n", "model": models[0],
+             "lang": "fr-fr"},
+            {"display_name": "fr-male",
+             "internal_name": "tts_models/multilingual/multi-dataset/your_tts--male-en-2\n", "model": models[0],
+             "lang": "fr-fr"}
+        ]
+        xtts_v2_lang = ['de', 'en', 'es', 'fr', 'it', 'pt', 'pl', 'tr', 'ru', 'nl', 'cs', 'ar', 'zh-cn', 'hu', 'ko',
+                        'ja', 'hi']
+        xtts_v2_speaker = ['Claribel Dervla', 'Daisy Studious', 'Gracie Wise', 'Tammie Ema', 'Alison Dietlinde',
+                           'Ana Florence',
+                           'Annmarie Nele', 'Asya Anara', 'Brenda Stern', 'Gitta Nikolina', 'Henriette Usha',
+                           'Sofia Hellen',
+                           'Tammy Grit', 'Tanja Adelina', 'Vjollca Johnnie', 'Andrew Chipper', 'Badr Odhiambo',
+                           'Dionisio Schuyler',
+                           'Royston Min', 'Viktor Eka', 'Abrahan Mack', 'Adde Michal', 'Baldur Sanjin', 'Craig Gutsy',
+                           'Damien Black',
+                           'Gilberto Mathias', 'Ilkin Urbano', 'Kazuhiko Atallah', 'Ludvig Milivoj', 'Suad Qasim',
+                           'Torcull Diarmuid',
+                           'Viktor Menelaos', 'Zacharie Aimilios', 'Nova Hogarth', 'Maja Ruoho', 'Uta Obando',
+                           'Lidiya Szekeres',
+                           'Chandra MacFarland', 'Szofi Granger', 'Camilla Holmström', 'Lilya Stainthorpe',
+                           'Zofija Kendrick',
+                           'Narelle Moon', 'Barbora MacLean', 'Alexandra Hisakawa', 'Alma María', 'Rosemary Okafor',
+                           'Ige Behringer',
+                           'Filip Traverse', 'Damjan Chapman', 'Wulf Carlevaro', 'Aaron Dreschner', 'Kumar Dahl',
+                           'Eugenio Mataracı',
+                           'Ferran Simen', 'Xavier Hayasaka', 'Luis Moray', 'Marcos Rudaski']
+
+        for lang in xtts_v2_lang:
+            for speaker in xtts_v2_speaker:
+                voices.append({
+                    "display_name": f"{speaker} ({lang})",
+                    "internal_name": f"tts_models/multilingual/multi-dataset/xtts_v2--{speaker}",
+                    "model": models[1],
+                    "lang": lang
+                })
+
         current_model = self.settings.model_text
-        self.voices = [v for v in self.voices if v["model"] == current_model]
+        self.voices = [v for v in voices if v["model"] == current_model]
         self.voice_mapping = {voice["display_name"]: voice["internal_name"] for voice in self.voices}
-        return [v for v in self.voices if v["model"] == current_model]
+        log.info(f"Fetched and set {len(self.voices)} Coqui voices.")
 
     def text_to_api_format(self, text):
         return text
