@@ -90,8 +90,9 @@ class CoquiAPISettings(BaseApiSettings):
             (v["display_name"] for v in CoquiAPI.voices if v["internal_name"] == self.voice_text),
             None
         )
+        print(f"self.voice_text = {self.voice_text}")
         if matching_voice:
-            self.widget.voice_selection.text = matching_voice
+            print(f"self.widget.voice_selection.text = {self.widget.voice_selection.text}")
         else:
             log.warning(f"No matching display name for internal name: {self.voice_text}")
 
@@ -139,7 +140,7 @@ class CoquiAPI(BaseApi):
     def get_available_voices(self):
         models = self.get_available_model_names()
 
-        voices = [
+        self.voices = [
             {"display_name": "en-female1", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-en-5",
              "speaker_type": "multi", "model": models[0], "lang": "en"},
             {"display_name": "en-female2", "internal_name": "tts_models/multilingual/multi-dataset/your_tts--female-en-5\n",
@@ -182,7 +183,7 @@ class CoquiAPI(BaseApi):
 
         for lang in xtts_v2_lang:
             for speaker in xtts_v2_speaker:
-                voices.append({
+                self.voices.append({
                     "display_name": f"{speaker} ({lang})",
                     "internal_name": f"tts_models/multilingual/multi-dataset/xtts_v2--{speaker}",
                     "speaker_type": "multi",
@@ -191,7 +192,7 @@ class CoquiAPI(BaseApi):
                 })
 
         current_model = self.settings.model_text
-        self.voices = [v for v in voices if v["model"] == current_model]
+        self.voices = [v for v in self.voices if v["model"] == current_model]
         self.voice_mapping = {voice["display_name"]: voice["internal_name"] for voice in self.voices}
         log.info(f"Fetched and set {len(self.voices)} Coqui voices.")
 
