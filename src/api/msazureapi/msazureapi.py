@@ -173,7 +173,7 @@ class MSAzureAPI(BaseApi):
         "🔈": ("<prosody volume=\"x-soft\">", "</prosody>"),
         "🔉": ("<prosody volume=\"medium\">", "</prosody>"),
         "🔊": ("<prosody volume=\"x-loud\">", "</prosody>"),
-        "🌏": ("<lang xml:lang=\"en-US\">", "</lang>")
+        "🌎": ("<lang xml:lang=\"en-US\">", "</lang>")
     }
 
     def __init__(self, settings: MSAzureAPISettings):

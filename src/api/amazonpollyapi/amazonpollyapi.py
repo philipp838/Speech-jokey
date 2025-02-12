@@ -186,7 +186,7 @@ class AmazonPollyAPI(BaseApi):
         "🔈": ("<prosody volume=\"x-soft\">", "</prosody>"),
         "🔉": ("<prosody volume=\"medium\">", "</prosody>"),
         "🔊": ("<prosody volume=\"x-loud\">", "</prosody>"),
-        "🌏": ("<lang xml:lang=\"en-US\">", "</lang>")
+        "🌎": ("<lang xml:lang=\"en-US\">", "</lang>")
     }
 
     # Create a mapping for quick lookup of internal names by display name
