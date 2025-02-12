@@ -188,7 +188,7 @@ class AmazonPollyAPI(BaseApi):
         "🗣️⬇️": ("<prosody pitch=\"low\">", "</prosody>"),
         "🗣️⬆️": ("<prosody pitch=\"high\">", "</prosody>"),
         "🗣️⏫": ("<prosody pitch=\"x-high\">", "</prosody>"),
-        "🌏": ("<lang xml:lang=\"en-US\">", "</lang>")
+        "🌎": ("<lang xml:lang=\"en-US\">", "</lang>")
     }
 
     def __init__(self, settings: AmazonPollyAPISettings):
