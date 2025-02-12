@@ -183,9 +183,9 @@ class AmazonPollyAPI(BaseApi):
         "😐": ("<emphasis level=\"reduced\">", "</emphasis>"),
         "🙂": ("<emphasis level=\"moderate\">", "</emphasis>"),
         "😁": ("<emphasis level=\"strong\">", "</emphasis>"),
-        "🔈": ("<prosody volume=\"silent\">", "</prosody>"),
+        "🔈": ("<prosody volume=\"x-soft\">", "</prosody>"),
         "🔉": ("<prosody volume=\"medium\">", "</prosody>"),
-        "🔊": ("<prosody volume=\"loud\">", "</prosody>"),
+        "🔊": ("<prosody volume=\"x-loud\">", "</prosody>"),
         "🌏": ("<lang xml:lang=\"en-US\">", "</lang>")
     }
 
