@@ -1,13 +1,12 @@
 import requests
 import re
-import requests
 import azure.cognitiveservices.speech as speechsdk
 import logging as log
 from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown
 from kivymd.uix.screen import MDScreen
 from kivy.app import App
-from kivy.properties import StringProperty, ListProperty, ObjectProperty, Clock
+from kivy.properties import StringProperty, ListProperty, ObjectProperty
 from ..base import BaseApi, BaseApiSettings
 
 
@@ -165,9 +164,9 @@ class MSAzureAPI(BaseApi):
         "😐": ("<emphasis level=\"reduced\">", "</emphasis>"),
         "🙂": ("<emphasis level=\"moderate\">", "</emphasis>"),
         "😁": ("<emphasis level=\"strong\">", "</emphasis>"),
-        "🔈": ("<prosody volume=\"silent\">", "</prosody>"),
+        "🔈": ("<prosody volume=\"x-soft\">", "</prosody>"),
         "🔉": ("<prosody volume=\"medium\">", "</prosody>"),
-        "🔊": ("<prosody volume=\"loud\">", "</prosody>"),
+        "🔊": ("<prosody volume=\"x-loud\">", "</prosody>"),
         "🐌": ("<prosody rate=\"slow\">", "</prosody>"),
         "🚶": ("<prosody rate=\"medium\">", "</prosody>"),
         "🏃": ("<prosody rate=\"fast\">", "</prosody>"),

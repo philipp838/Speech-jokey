@@ -39,9 +39,9 @@ class EmojiPopup(Popup):
         # Text before and after cursor position
         current_text = self.text_input.text
         new_text = (
-                current_text[:cursor_index] +  # Text in front of cursor
-                emoji +  # The emoji to be inserted
-                current_text[cursor_index:]  # Text after cursor
+            current_text[:cursor_index] +  # Text in front of cursor
+            emoji +                        # The emoji to be inserted
+            current_text[cursor_index:]    # Text after cursor
         )
 
         # Set the new text in the TextInput
@@ -74,9 +74,9 @@ class MainScreen(MDScreen):
         "😐": ("<emphasis level=\"reduced\">", "</emphasis>"),
         "🙂": ("<emphasis level=\"moderate\">", "</emphasis>"),
         "😁": ("<emphasis level=\"strong\">", "</emphasis>"),
-        "🔈": ("<prosody volume=\"silent\">", "</prosody>"),
+        "🔈": ("<prosody volume=\"x-soft\">", "</prosody>"),
         "🔉": ("<prosody volume=\"medium\">", "</prosody>"),
-        "🔊": ("<prosody volume=\"loud\">", "</prosody>"),
+        "🔊": ("<prosody volume=\"x-loud\">", "</prosody>"),
         "🐌": ("<prosody rate=\"slow\">", "</prosody>"),
         "🚶": ("<prosody rate=\"medium\">", "</prosody>"),
         "🏃": ("<prosody rate=\"fast\">", "</prosody>"),
